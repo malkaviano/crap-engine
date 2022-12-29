@@ -19,7 +19,6 @@ describe('CustomLoggerHelper', () => {
         {
           provide: DateTimeHelper,
           useValue: instance(mockedDatetimeHelper),
-          scope: Scope.REQUEST,
         },
       ],
     })

@@ -29,6 +29,8 @@ async function bootstrap() {
 
   await app.listen(port);
 
+  console.log('HHHHHHHHHHHHHHHHHH');
+
   const logger = new Logger();
 
   logger.log(`Server started on port ${port}`, 'SERVER');

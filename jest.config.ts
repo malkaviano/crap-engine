@@ -7,16 +7,16 @@ const config: Config.InitialOptions = {
   verbose: true,
   testRegex: '.*\\.spec\\.ts$',
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    '^.+\\.(t|j)s$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+      },
+    ],
   },
   collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
   coveragePathIgnorePatterns: ['<rootDir>/node_modules/'],
   coverageDirectory: '<rootDir>/coverage',
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-    },
-  },
   testEnvironment: 'node',
   moduleDirectories: ['<rootDir>/src', '<rootDir>/test', 'node_modules'],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {

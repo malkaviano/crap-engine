@@ -10,7 +10,7 @@ import { Request } from 'express';
 
 import { DateTimeHelper } from '@root/helpers/date-time.helper';
 
-@Injectable({ scope: Scope.TRANSIENT })
+@Injectable({ scope: Scope.REQUEST })
 export class CustomLoggerHelper implements LoggerService {
   private context = 'NO_CONTEXT';
   private readonly logger: LoggerService;

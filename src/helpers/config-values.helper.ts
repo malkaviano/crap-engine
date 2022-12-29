@@ -1,11 +1,12 @@
 import { Injectable, Scope } from '@nestjs/common';
 
-@Injectable({ scope: Scope.DEFAULT })
+@Injectable()
 export class ConfigValuesHelper {
   public readonly DB_USER: string;
   public readonly DB_PASSWORD: string;
   public readonly BCRYPT_SALT_ROUNDS: number;
   public readonly JWT_SECRET: string;
+  public readonly ENGINE_LOOP_MS: number;
 
   constructor() {
     // Stops the server boot if any required config is missing
@@ -32,6 +33,12 @@ export class ConfigValuesHelper {
 
     if (!this.JWT_SECRET.length) {
       throw new Error('JWT_SECRET is required');
+    }
+
+    this.ENGINE_LOOP_MS = parseInt(process.env.ENGINE_LOOP_MS ?? '');
+
+    if (!this.ENGINE_LOOP_MS) {
+      throw new Error('ENGINE_LOOP_MS is required');
     }
   }
 }

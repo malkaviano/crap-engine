@@ -1,7 +1,7 @@
 {
-  "name": "changeme",
+  "name": "crap-engine",
   "version": "0.0.1",
-  "description": "A project template to help starting new projects",
+  "description": "A game engine based on RxJS",
   "author": "malkaviano",
   "private": false,
   "license": "MIT",
