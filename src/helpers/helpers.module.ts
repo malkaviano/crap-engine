@@ -1,9 +1,10 @@
 import { Module, Global } from '@nestjs/common';
 
-import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper';
-import { DateTimeHelper } from '@root/helpers/date-time.helper';
-import { ConfigValuesHelper } from '@root/helpers/config-values.helper';
-import { HasherHelper } from '@root/helpers/hasher.helper';
+import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
+import { DateTimeHelper } from '@root/helpers/date-time.helper.service';
+import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
+import { HasherHelper } from '@root/helpers/hasher.helper.service';
+import { DiceSetHelper } from '@root/helpers/dice-set.helper.service';
 
 @Global()
 @Module({
@@ -12,12 +13,14 @@ import { HasherHelper } from '@root/helpers/hasher.helper';
     CustomLoggerHelper,
     ConfigValuesHelper,
     HasherHelper,
+    DiceSetHelper,
   ],
   exports: [
     DateTimeHelper,
     CustomLoggerHelper,
     ConfigValuesHelper,
     HasherHelper,
+    DiceSetHelper,
   ],
 })
 export class HelpersModule {}

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import * as bcrypt from 'bcrypt';
 
-import { ConfigValuesHelper } from '@root/helpers/config-values.helper';
+import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
 
 @Injectable()
 export class HasherHelper {

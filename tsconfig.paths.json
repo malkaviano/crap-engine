@@ -4,6 +4,33 @@
     "paths": {
       "@root/*": [
         "src/*"
+      ],
+      "@infra/*": [
+        "src/infra/*"
+      ],
+      "@interfaces/*": [
+        "src/interfaces/*"
+      ],
+      "@definitions/*": [
+        "src/definitions/*"
+      ],
+      "@literals/*": [
+        "src/literals/*"
+      ],
+      "@helpers/*": [
+        "src/helpers/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@resources/*": [
+        "src/services/resources/*"
+      ],
+      "@errors/*": [
+        "src/errors/*"
+      ],
+      "@dtos/*": [
+        "src/dtos/*"
       ]
     }
   }

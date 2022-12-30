@@ -7,7 +7,7 @@ export class AccountsRepository {
   private readonly accounts: Account[] = [
     {
       username: 'john',
-      password: '$2b$10$AMWyDVoo8TIy6xHHSoHGneALteNWoPjzzI7WuNKAXnSZP77yo0Fi.',
+      password: '$2b$10$YEF0seljXSVn8dUCCzOVcuLsuWsAmY0Ost8RWazO6qO7bk2wBTg.i',
     },
   ];
 

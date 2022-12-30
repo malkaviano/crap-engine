@@ -14,7 +14,7 @@ const config: Config.InitialOptions = {
       },
     ],
   },
-  collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
+  collectCoverageFrom: ['<rootDir>/src/**/*.service.ts'],
   coveragePathIgnorePatterns: ['<rootDir>/node_modules/'],
   coverageDirectory: '<rootDir>/coverage',
   testEnvironment: 'node',

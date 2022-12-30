@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { DateTime } from 'luxon';
 
-import { DateTimeHelper } from '@root/helpers/date-time.helper';
+import { DateTimeHelper } from '@root/helpers/date-time.helper.service';
 
-describe('TimestampService', () => {
+describe('DateTimeHelper', () => {
   let service: DateTimeHelper;
 
   beforeEach(async () => {

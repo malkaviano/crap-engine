@@ -8,7 +8,7 @@ import {
 
 import { Request } from 'express';
 
-import { DateTimeHelper } from '@root/helpers/date-time.helper';
+import { DateTimeHelper } from '@root/helpers/date-time.helper.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class CustomLoggerHelper implements LoggerService {

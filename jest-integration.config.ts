@@ -2,6 +2,6 @@ import sharedConfig from './jest.config';
 
 const config = sharedConfig;
 
-config.testRegex = '.e2e-spec.ts$';
+config.testRegex = '.int-spec.ts$';
 
 export default config;

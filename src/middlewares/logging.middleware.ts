@@ -3,8 +3,8 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { v4 } from 'uuid';
 
-import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper';
-import { DateTimeHelper } from '@root/helpers/date-time.helper';
+import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
+import { DateTimeHelper } from '@root/helpers/date-time.helper.service';
 
 @Injectable()
 export class LoggingMiddleware implements NestMiddleware {

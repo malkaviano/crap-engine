@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { ConfigValuesHelper } from '@root/helpers/config-values.helper';
+import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
 
-describe('ConfigValuesService', () => {
+describe('ConfigValuesHelper', () => {
   let service: ConfigValuesHelper;
 
   beforeEach(async () => {

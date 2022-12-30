@@ -5,7 +5,7 @@ import { anyString, anything, instance, mock, when } from 'ts-mockito';
 
 import { AuthService } from '@root/auth/auth.service';
 import { AccountsRepository } from '@root/auth/accounts.repository';
-import { HasherHelper } from '@root/helpers/hasher.helper';
+import { HasherHelper } from '@root/helpers/hasher.helper.service';
 import { Account } from '@root/auth/account.model';
 
 describe('AuthService', () => {

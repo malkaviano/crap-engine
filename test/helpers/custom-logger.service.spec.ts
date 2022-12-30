@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Logger, Scope } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 
 import { mock, instance, anything, verify, anyString } from 'ts-mockito';
 
-import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper';
-import { DateTimeHelper } from '@root/helpers/date-time.helper';
+import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
+import { DateTimeHelper } from '@root/helpers/date-time.helper.service';
 
 describe('CustomLoggerHelper', () => {
   const mockedDatetimeHelper = mock(DateTimeHelper);

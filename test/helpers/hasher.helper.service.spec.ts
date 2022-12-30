@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { instance, mock, when } from 'ts-mockito';
 
-import { HasherHelper } from '@root/helpers/hasher.helper';
-import { ConfigValuesHelper } from '@root/helpers/config-values.helper';
+import { HasherHelper } from '@root/helpers/hasher.helper.service';
+import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
 
-describe('HasherService', () => {
+describe('HasherHelper', () => {
   let service: HasherHelper;
 
   const mockedConfigValuesHelper = mock(ConfigValuesHelper);

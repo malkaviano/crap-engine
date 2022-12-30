@@ -3,8 +3,8 @@ import { ApiBody } from '@nestjs/swagger';
 
 import { LocalAuthGuard } from '@root/guards/local-auth.guard';
 import { AuthService } from '@root/auth/auth.service';
-import { JWTTokenDto } from '@root/dtos/jwt-token.dto';
-import { LoginDto } from '@root/dtos/login.dto';
+import { JWTTokenDto } from '@dtos/jwt-token.dto';
+import { LoginDto } from '@dtos/login.dto';
 import { NoJWT } from '@root/annotations/no-jwt.annotation';
 
 @Controller('auth')

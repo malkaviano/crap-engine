@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
@@ -14,9 +14,15 @@ async function bootstrap() {
 
   app.enableCors();
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
+
   const config = new DocumentBuilder()
-    .setTitle('ChangeME')
-    .setDescription('The ChangeME API description')
+    .setTitle('CrapEngine')
+    .setDescription('The CrapEngine API description')
     .setVersion('0.1')
     .addBearerAuth()
     .build();
@@ -28,8 +34,6 @@ async function bootstrap() {
   const port = process.env.SERVER_PORT ?? 3000;
 
   await app.listen(port);
-
-  console.log('HHHHHHHHHHHHHHHHHH');
 
   const logger = new Logger();
 

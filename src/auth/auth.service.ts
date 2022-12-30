@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { AccountsRepository } from '@root/auth/accounts.repository';
-import { HasherHelper } from '@root/helpers/hasher.helper';
-import { JWTTokenDto } from '@root/dtos/jwt-token.dto';
+import { HasherHelper } from '@root/helpers/hasher.helper.service';
+import { JWTTokenDto } from '@dtos/jwt-token.dto';
 
 @Injectable()
 export class AuthService {

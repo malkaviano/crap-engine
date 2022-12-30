@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import { ConfigValuesHelper } from '@root/helpers/config-values.helper';
+import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
