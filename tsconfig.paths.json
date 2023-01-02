@@ -24,7 +24,7 @@
         "src/services/*"
       ],
       "@resources/*": [
-        "src/services/resources/*"
+        "src/resources/*"
       ],
       "@errors/*": [
         "src/errors/*"

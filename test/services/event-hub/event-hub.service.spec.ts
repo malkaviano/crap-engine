@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { EventHubService } from '@root/services/event-hub/event-hub.service';
+import { EventHubService } from '@services/event-hub.service';
 
 describe('EventHubService', () => {
   let service: EventHubService<string>;

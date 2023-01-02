@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { ItemStoreService } from '@infra/stores/item/item-store.service';
+import { ItemStoreService } from '@root/infra/stores/item.store.service';
 import { AstraClient } from '@infra/astra-client/astra-client';
 import { HelpersModule } from '@helpers/helpers.module';
 

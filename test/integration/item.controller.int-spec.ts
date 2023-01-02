@@ -5,7 +5,6 @@ import { instance, mock } from 'ts-mockito';
 import { ItemController } from '@resources/item/item.controller';
 import { ItemService } from '@resources/item/item.service';
 
-// TODO: e2e test
 describe('ItemController', () => {
   let controller: ItemController;
 
