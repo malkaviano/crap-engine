@@ -1,14 +1,14 @@
 import { ConsumeInterface } from '@interfaces/consume.interface';
-import { ItemIdentityInterface } from '@interfaces/item-identity.interface';
+import { ItemInfoInterface } from '@interfaces/item-info.interface';
 import { ItemDefinition } from '@definitions/item.definition';
 
 export class ConsumableDefinition extends ItemDefinition {
   constructor(
-    identity: ItemIdentityInterface,
+    itemInfo: ItemInfoInterface,
     usability: string,
     skillName: string | null,
     public readonly consume: ConsumeInterface,
   ) {
-    super(identity, 'CONSUMABLE', usability, skillName);
+    super(itemInfo, 'CONSUMABLE', usability, skillName);
   }
 }

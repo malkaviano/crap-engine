@@ -1,4 +1,4 @@
-import { ItemIdentityInterface } from '@interfaces/item-identity.interface';
+import { ItemInfoInterface } from '@interfaces/item-info.interface';
 
 export abstract class ItemDefinition {
   public readonly name: string;
@@ -6,13 +6,13 @@ export abstract class ItemDefinition {
   public readonly description: string;
 
   constructor(
-    identity: ItemIdentityInterface,
+    itemInfo: ItemInfoInterface,
     public readonly category: string,
     public readonly usability: string,
     public readonly skillName: string | null,
   ) {
-    this.name = identity.name;
-    this.label = identity.label;
-    this.description = identity.description;
+    this.name = itemInfo.name;
+    this.label = itemInfo.label;
+    this.description = itemInfo.description;
   }
 }

@@ -142,7 +142,7 @@ export class ItemCatalogStore
         const readable = values[8].hasString() ? values[8].getString() : null;
 
         return this.inflateItem({
-          identity: {
+          itemInfo: {
             name: values[1].getString(),
             label: values[3].getString(),
             description: values[4].getString(),
@@ -169,7 +169,7 @@ export class ItemCatalogStore
       const weapon: WeaponInterface = JSON.parse(stored['weapon']);
 
       return new WeaponDefinition(
-        stored['identity'],
+        stored['itemInfo'],
         stored['usability'],
         stored['skillName'],
         weapon.dodgeable,
@@ -180,7 +180,7 @@ export class ItemCatalogStore
       const consume: ConsumeInterface = JSON.parse(stored['consumable']);
 
       return new ConsumableDefinition(
-        stored['identity'],
+        stored['itemInfo'],
         stored['usability'],
         stored['skillName'],
         consume,
@@ -189,7 +189,7 @@ export class ItemCatalogStore
       const readable: ReadableInterface = JSON.parse(stored['readable']);
 
       return new ReadableDefinition(
-        stored['identity'],
+        stored['itemInfo'],
         stored['usability'],
         stored['skillName'],
         readable,
