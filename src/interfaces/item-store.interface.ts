@@ -1,7 +1,7 @@
 import { ItemDefinition } from '@definitions/item.definition';
 
-export interface ItemStoreInterface {
-  getItem(name: string): Promise<ItemDefinition | null>;
+export interface ItemCatalogStoreInterface {
+  getItem(category: string, name: string): Promise<ItemDefinition | null>;
   upsertItem(item: ItemDefinition): Promise<void>;
-  removeItem(name: string): Promise<void>;
+  removeItem(category: string, name: string): Promise<void>;
 }

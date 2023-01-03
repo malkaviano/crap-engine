@@ -3,7 +3,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Row, Value, Values } from '@stargate-oss/stargate-grpc-node-client';
 
 import { AstraClient } from '@infra/astra-client/astra.client';
-import { ItemStoreInterface } from '@interfaces/item-store.interface';
+import { ItemCatalogStoreInterface } from '@interfaces/item-store.interface';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ItemDefinition } from '@definitions/item.definition';
@@ -13,12 +13,14 @@ import { ConsumeInterface } from '@interfaces/consume.interface';
 import { InfraError } from '@errors/infra.error';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { ReadableDefinition } from '@definitions/readable.definition';
-import { ItemStored } from '@infra/stores/item-stored.type';
-import { QueryInfo } from '@infra/stores/query-info.type';
+import { ItemStored } from '@root/infra/stores/catalogs/item-stored.type';
+import { QueryInfo } from '@infra/stores/catalogs/query-info.type';
 import { ReadableInterface } from '@interfaces/readable.interface';
 
 @Injectable()
-export class ItemStoreService implements OnModuleInit, ItemStoreInterface {
+export class ItemCatalogStore
+  implements OnModuleInit, ItemCatalogStoreInterface
+{
   private readonly fields: string;
 
   private readonly insertStmt: string;
@@ -33,8 +35,8 @@ export class ItemStoreService implements OnModuleInit, ItemStoreInterface {
     private readonly logger: CustomLoggerHelper,
   ) {
     this.fields = [
-      'name',
       'category',
+      'name',
       'usability',
       'label',
       'description',
@@ -45,30 +47,35 @@ export class ItemStoreService implements OnModuleInit, ItemStoreInterface {
     ].join(',');
 
     this.insertStmt =
-      `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items ` +
+      `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items_catalog ` +
       `(${this.fields}) values(?,?,?,?,?,?,?,?,?);`;
 
-    this.selectStmt = `select ${this.fields} from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items where name = ?;`;
+    this.selectStmt = `select ${this.fields} from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items_catalog where category = ? and name = ?;`;
 
-    this.deleteStmt = `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items where name = ?;`;
+    this.deleteStmt = `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items_catalog where category = ? and name = ?;`;
   }
 
   public async onModuleInit(): Promise<void> {
     await this.astraClient.executeQuery(
-      `CREATE TABLE IF NOT EXISTS ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items ` +
+      `CREATE TABLE IF NOT EXISTS ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items_catalog ` +
         '(name text,category text,usability text,consumable text,' +
         'description text,label text,readable text,skillname text,' +
-        'weapon text,PRIMARY KEY (name));',
+        'weapon text,PRIMARY KEY (category, name));',
     );
   }
 
-  public async getItem(name: string): Promise<ItemDefinition | null> {
+  public async getItem(
+    category: string,
+    name: string,
+  ): Promise<ItemDefinition | null> {
     try {
-      const nameValue = this.newStringValue(name);
-
       const queryValues = new Values();
 
-      queryValues.setValuesList([nameValue]);
+      const categoryValue = this.newStringValue(category);
+
+      const nameValue = this.newStringValue(name);
+
+      queryValues.setValuesList([categoryValue, nameValue]);
 
       const raw = await this.astraClient.executeQuery(
         this.selectStmt,
@@ -103,13 +110,15 @@ export class ItemStoreService implements OnModuleInit, ItemStoreInterface {
     }
   }
 
-  public async removeItem(name: string): Promise<void> {
+  public async removeItem(category: string, name: string): Promise<void> {
     try {
       const queryValues = new Values();
 
+      const categoryValue = this.newStringValue(category);
+
       const nameValue = this.newStringValue(name);
 
-      queryValues.setValuesList([nameValue]);
+      queryValues.setValuesList([categoryValue, nameValue]);
 
       await this.astraClient.executeQuery(this.deleteStmt, queryValues);
     } catch (error) {
@@ -134,11 +143,11 @@ export class ItemStoreService implements OnModuleInit, ItemStoreInterface {
 
         return this.inflateItem({
           identity: {
-            name: values[0].getString(),
+            name: values[1].getString(),
             label: values[3].getString(),
             description: values[4].getString(),
           },
-          category: values[1].getString(),
+          category: values[0].getString(),
           usability: values[2].getString(),
           skillName,
           weapon,
@@ -218,8 +227,8 @@ export class ItemStoreService implements OnModuleInit, ItemStoreInterface {
     const skillNameValue = this.newStringValue(item.skillName);
 
     let values = [
-      nameValue,
       categoryValue,
+      nameValue,
       usabilityValue,
       labelValue,
       descriptionValue,

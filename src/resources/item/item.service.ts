@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 
 import { CreateItemDto } from '@dtos/create-item.dto';
-import { ItemStoreInterface } from '@interfaces/item-store.interface';
+import { ItemCatalogStoreInterface } from '@interfaces/item-store.interface';
 import { ItemDefinition } from '@definitions/item.definition';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
@@ -15,7 +15,8 @@ import { ReadableDefinition } from '@definitions/readable.definition';
 export class ItemService {
   constructor(
     private readonly customLoggerHelper: CustomLoggerHelper,
-    @Inject(ITEM_STORE_TOKEN) private readonly itemStore: ItemStoreInterface,
+    @Inject(ITEM_STORE_TOKEN)
+    private readonly itemStore: ItemCatalogStoreInterface,
     private readonly diceSetHelper: DiceSetHelper,
   ) {}
 
@@ -31,8 +32,11 @@ export class ItemService {
     await this.itemStore.upsertItem(item);
   }
 
-  async findOne(name: string): Promise<ItemDefinition | null> {
-    const result = await this.itemStore.getItem(name);
+  async findOne(
+    category: string,
+    name: string,
+  ): Promise<ItemDefinition | null> {
+    const result = await this.itemStore.getItem(category, name);
 
     if (result) {
       this.customLoggerHelper.log('Item found', result);
@@ -45,10 +49,10 @@ export class ItemService {
     return null;
   }
 
-  public async remove(name: string): Promise<void> {
-    this.customLoggerHelper.log('Deleting item', { name });
+  public async remove(category: string, name: string): Promise<void> {
+    this.customLoggerHelper.log('Deleting item', { category, name });
 
-    await this.itemStore.removeItem(name);
+    await this.itemStore.removeItem(category, name);
   }
 
   private createItem(dto: CreateItemDto): ItemDefinition | null {
@@ -81,7 +85,7 @@ export class ItemService {
           description: dto.description,
         },
         dto.usability,
-        dto.skillName,
+        dto.skillName ?? null,
         dto.consumable,
       );
     } else if (dto.category === 'READABLE' && dto.readable) {
@@ -92,7 +96,7 @@ export class ItemService {
           description: dto.description,
         },
         dto.usability,
-        dto.skillName,
+        dto.skillName ?? null,
         dto.readable,
       );
     }

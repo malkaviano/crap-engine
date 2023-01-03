@@ -48,7 +48,7 @@ export class CreateItemDto {
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  public skillName: string | null;
+  public skillName?: string;
 
   @ApiProperty()
   @IsOptional()

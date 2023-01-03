@@ -57,9 +57,9 @@ describe('ItemService', () => {
   describe('findOne', () => {
     describe('item was not found', () => {
       it('return null', async () => {
-        when(mockedItemStore.getItem('xpto')).thenResolve(null);
+        when(mockedItemStore.getItem('WEAPON', 'xpto')).thenResolve(null);
 
-        const result = await service.findOne('xpto');
+        const result = await service.findOne('WEAPON', 'xpto');
 
         expect(result).toBeNull();
       });
@@ -67,9 +67,9 @@ describe('ItemService', () => {
 
     describe('item was weapon', () => {
       it('return weapon', async () => {
-        when(mockedItemStore.getItem('weapon')).thenResolve(sword);
+        when(mockedItemStore.getItem('WEAPON', 'sword')).thenResolve(sword);
 
-        const result = await service.findOne('weapon');
+        const result = await service.findOne('WEAPON', 'sword');
 
         expect(result).toEqual(sword);
       });
@@ -78,9 +78,9 @@ describe('ItemService', () => {
 
   describe('remove', () => {
     it('should call store remove', async () => {
-      await service.remove('xpto');
+      await service.remove('WEAPON', 'xpto');
 
-      verify(mockedItemStore.removeItem('xpto')).once();
+      verify(mockedItemStore.removeItem('WEAPON', 'xpto')).once();
     });
   });
 
@@ -151,7 +151,6 @@ describe('ItemService', () => {
           label: "Friend's Note",
           description: 'Small Handwritten Note',
           usability: 'PERMANENT',
-          skillName: null,
           readable: {
             title: 'LATE!!!',
             paragraphs: ['GG', 'GG2', 'GG3'],

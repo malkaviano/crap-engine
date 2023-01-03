@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
@@ -32,10 +33,19 @@ export class ItemController {
     }
   }
 
-  @Get(':name')
-  async findOne(@Param('name') name: string): Promise<ItemDefinition | null> {
+  @Get(':category/:name')
+  async findOne(
+    @Param('category') category: string,
+    @Param('name') name: string,
+  ): Promise<ItemDefinition | null> {
     try {
-      return await this.itemService.findOne(name);
+      const item = await this.itemService.findOne(category, name);
+
+      if (!item) {
+        throw new NotFoundException('Item not found');
+      }
+
+      return item;
     } catch (error) {
       if (error instanceof ApplicationError) {
         throw new BadRequestException(error.message);
@@ -45,10 +55,13 @@ export class ItemController {
     }
   }
 
-  @Delete(':name')
-  async remove(@Param('name') name: string) {
+  @Delete(':category/:name')
+  async remove(
+    @Param('category') category: string,
+    @Param('name') name: string,
+  ) {
     try {
-      return await this.itemService.remove(name);
+      return await this.itemService.remove(category, name);
     } catch (error) {
       if (error instanceof ApplicationError) {
         throw new BadRequestException(error.message);
