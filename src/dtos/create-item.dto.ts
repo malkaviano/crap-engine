@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsOptional,
@@ -11,6 +11,7 @@ import {
 
 import { ConsumableDto } from '@dtos/consumable.dto';
 import { WeaponDto } from '@dtos/weapon.dto';
+import { ReadableDto } from '@dtos/readable.dto';
 
 export class CreateItemDto {
   @ApiProperty()
@@ -44,6 +45,7 @@ export class CreateItemDto {
   public usability: string;
 
   @ApiProperty()
+  @IsOptional()
   @IsString()
   @MaxLength(20)
   public skillName: string | null;
@@ -62,5 +64,7 @@ export class CreateItemDto {
 
   @ApiProperty()
   @IsOptional()
-  public readable?: string;
+  @ValidateNested()
+  @Type(() => ReadableDto)
+  public readable?: ReadableDto;
 }

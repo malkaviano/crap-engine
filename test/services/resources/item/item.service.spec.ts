@@ -13,7 +13,7 @@ import {
   mockedDiceSetHelper,
   mockedItemStore,
 } from '../../../shared-mocks';
-import { firstAidKit, sword } from '../../../fakes';
+import { firstAidKit, friendNote, sword } from '../../../fakes';
 
 describe('ItemService', () => {
   let service: ItemService;
@@ -143,6 +143,21 @@ describe('ItemService', () => {
           },
         },
         expected: sword,
+      },
+      {
+        item: {
+          category: 'READABLE',
+          name: 'friendNote',
+          label: "Friend's Note",
+          description: 'Small Handwritten Note',
+          usability: 'PERMANENT',
+          skillName: null,
+          readable: {
+            title: 'LATE!!!',
+            paragraphs: ['GG', 'GG2', 'GG3'],
+          },
+        },
+        expected: friendNote,
       },
     ].forEach(({ item, expected }) => {
       describe(`when saving ${item.category}`, () => {

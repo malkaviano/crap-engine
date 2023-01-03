@@ -9,6 +9,7 @@ import { ITEM_STORE_TOKEN } from '@root/tokens';
 import { DiceSetHelper } from '@root/helpers/dice-set.helper.service';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ApplicationError } from '@errors/application.error';
+import { ReadableDefinition } from '../../definitions/readable.definition';
 
 @Injectable()
 export class ItemService {
@@ -21,9 +22,9 @@ export class ItemService {
   }
 
   public async save(dto: CreateItemDto): Promise<void> {
-    const item = this.createItem(dto);
-
     this.customLoggerHelper.log('Saving item', dto);
+
+    const item = this.createItem(dto);
 
     if (!item) {
       throw new ApplicationError('Item with wrong category');
@@ -53,10 +54,12 @@ export class ItemService {
   }
 
   private createItem(dto: CreateItemDto): ItemDefinition | null {
+    let item: ItemDefinition | null = null;
+
     if (dto.category === 'WEAPON' && dto.skillName && dto.weapon) {
       const diceSet = this.diceSetHelper.createSet(dto.weapon.damage.dice);
 
-      return new WeaponDefinition(
+      item = new WeaponDefinition(
         {
           name: dto.name,
           label: dto.label,
@@ -73,7 +76,7 @@ export class ItemService {
         },
       );
     } else if (dto.category === 'CONSUMABLE' && dto.consumable) {
-      return new ConsumableDefinition(
+      item = new ConsumableDefinition(
         {
           name: dto.name,
           label: dto.label,
@@ -83,8 +86,19 @@ export class ItemService {
         dto.skillName,
         dto.consumable,
       );
+    } else if (dto.category === 'READABLE' && dto.readable) {
+      item = new ReadableDefinition(
+        {
+          name: dto.name,
+          label: dto.label,
+          description: dto.description,
+        },
+        dto.usability,
+        dto.skillName,
+        dto.readable,
+      );
     }
 
-    return null;
+    return item;
   }
 }

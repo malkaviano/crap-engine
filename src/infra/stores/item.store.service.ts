@@ -1,26 +1,23 @@
 import { Injectable } from '@nestjs/common';
 
-import {
-  Query,
-  Row,
-  Value,
-  Values,
-} from '@stargate-oss/stargate-grpc-node-client';
+import { Row, Value, Values } from '@stargate-oss/stargate-grpc-node-client';
 
 import { AstraClient } from '@infra/astra-client/astra-client';
 import { ItemStoreInterface } from '@interfaces/item-store.interface';
-import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
+import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ItemDefinition } from '@definitions/item.definition';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { WeaponInterface } from '@interfaces/weapon.interface';
 import { ConsumeInterface } from '@interfaces/consume.interface';
 import { InfraError } from '@errors/infra.error';
-import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
+import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
+import { ReadableDefinition } from '@definitions/readable.definition';
 
 type QueryInfo = {
-  readonly stmt: string;
-  readonly values: Values;
+  readonly weapon: Value;
+  readonly consumable: Value;
+  readonly readable: Value;
 };
 
 type ItemStored = {
@@ -47,9 +44,7 @@ export class ItemStoreService implements ItemStoreInterface {
     'readable',
   ].join(',');
 
-  private readonly weaponInsertStmt: string;
-
-  private readonly consumableInsertStmt: string;
+  private readonly insertStmt: string;
 
   private readonly selectStmt: string;
 
@@ -62,13 +57,9 @@ export class ItemStoreService implements ItemStoreInterface {
   ) {
     this.logger.setContext(ItemStoreService.name);
 
-    this.weaponInsertStmt =
+    this.insertStmt =
       `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items ` +
-      '(name,category,usability,label,description,skillname,weapon) values(?,?,?,?,?,?,?);';
-
-    this.consumableInsertStmt =
-      `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items ` +
-      '(name,category,usability,label,description,skillname,consumable) values(?,?,?,?,?,?,?);';
+      `(${this.fields}) values(?,?,?,?,?,?,?,?,?);`;
 
     this.selectStmt = `select ${this.fields} from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items where name = ?;`;
 
@@ -106,9 +97,9 @@ export class ItemStoreService implements ItemStoreInterface {
 
   public async upsertItem(item: ItemDefinition): Promise<void> {
     try {
-      const { stmt, values } = this.queryInfo(item);
+      const values = this.queryInfo(item);
 
-      await this.astraClient.executeQuery(stmt, values);
+      await this.astraClient.executeQuery(this.insertStmt, values);
     } catch (error) {
       this.logger.error(error.message, error);
 
@@ -200,39 +191,60 @@ export class ItemStoreService implements ItemStoreInterface {
     if (value) {
       strValue.setString(value);
     } else {
-      strValue.setNull();
+      strValue.setNull(new Value.Null());
     }
 
     return strValue;
   }
 
-  private queryInfo(item: ItemDefinition): QueryInfo {
+  private queryInfo(item: ItemDefinition): Values {
+    const queryValues = new Values();
+
+    const nameValue = this.newStringValue(item.name);
+
+    const labelValue = this.newStringValue(item.label);
+
+    const descriptionValue = this.newStringValue(item.description);
+
+    const categoryValue = this.newStringValue(item.category);
+
+    const usabilityValue = this.newStringValue(item.usability);
+
+    const skillNameValue = this.newStringValue(item.skillName);
+
+    let values = [
+      nameValue,
+      categoryValue,
+      usabilityValue,
+      labelValue,
+      descriptionValue,
+      skillNameValue,
+    ];
+
     if (item instanceof WeaponDefinition) {
-      return this.newWeapon(item);
+      const { weapon, consumable, readable } = this.newWeapon(item);
+
+      values = values.concat([weapon, consumable, readable]);
     }
 
     if (item instanceof ConsumableDefinition) {
-      return this.newConsumable(item);
+      const { weapon, consumable, readable } = this.newConsumable(item);
+
+      values = values.concat([weapon, consumable, readable]);
     }
 
-    throw new Error('loading wrong item format');
+    if (item instanceof ReadableDefinition) {
+      const { weapon, consumable, readable } = this.newReadable(item);
+
+      values = values.concat([weapon, consumable, readable]);
+    }
+
+    queryValues.setValuesList(values);
+
+    return queryValues;
   }
 
   private newWeapon(weapon: WeaponDefinition): QueryInfo {
-    const queryValues = new Values();
-
-    const nameValue = this.newStringValue(weapon.name);
-
-    const labelValue = this.newStringValue(weapon.label);
-
-    const descriptionValue = this.newStringValue(weapon.description);
-
-    const categoryValue = this.newStringValue(weapon.category);
-
-    const usabilityValue = this.newStringValue(weapon.usability);
-
-    const skillNameValue = this.newStringValue(weapon.skillName);
-
     const weaponValue = this.newStringValue(
       JSON.stringify({
         damage: weapon.damage,
@@ -241,48 +253,40 @@ export class ItemStoreService implements ItemStoreInterface {
       }),
     );
 
-    queryValues.setValuesList([
-      nameValue,
-      categoryValue,
-      usabilityValue,
-      labelValue,
-      descriptionValue,
-      skillNameValue,
-      weaponValue,
-    ]);
+    const nullValue = new Value();
 
-    return { stmt: this.weaponInsertStmt, values: queryValues };
+    nullValue.setNull(new Value.Null());
+
+    return { weapon: weaponValue, consumable: nullValue, readable: nullValue };
   }
 
   private newConsumable(consumable: ConsumableDefinition): QueryInfo {
-    const queryValues = new Values();
-
-    const nameValue = this.newStringValue(consumable.name);
-
-    const labelValue = this.newStringValue(consumable.label);
-
-    const descriptionValue = this.newStringValue(consumable.description);
-
-    const categoryValue = this.newStringValue(consumable.category);
-
-    const usabilityValue = this.newStringValue(consumable.usability);
-
-    const skillNameValue = this.newStringValue(consumable.skillName);
-
     const consumeValue = this.newStringValue(
       JSON.stringify(consumable.consume),
     );
 
-    queryValues.setValuesList([
-      nameValue,
-      categoryValue,
-      usabilityValue,
-      labelValue,
-      descriptionValue,
-      skillNameValue,
-      consumeValue,
-    ]);
+    const nullValue = new Value();
 
-    return { stmt: this.consumableInsertStmt, values: queryValues };
+    nullValue.setNull(new Value.Null());
+
+    return {
+      weapon: nullValue,
+      consumable: consumeValue,
+      readable: nullValue,
+    };
+  }
+
+  private newReadable(readable: ReadableDefinition): QueryInfo {
+    const readValue = this.newStringValue(JSON.stringify(readable.read));
+
+    const nullValue = new Value();
+
+    nullValue.setNull(new Value.Null());
+
+    return {
+      weapon: nullValue,
+      consumable: nullValue,
+      readable: readValue,
+    };
   }
 }

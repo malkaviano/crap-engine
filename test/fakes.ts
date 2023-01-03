@@ -1,5 +1,6 @@
 import { WeaponDefinition } from '@definitions/weapon.definition';
-import { ConsumableDefinition } from '../src/definitions/consumable.definition';
+import { ConsumableDefinition } from '@definitions/consumable.definition';
+import { ReadableDefinition } from '@definitions/readable.definition';
 
 export const sword = new WeaponDefinition(
   {
@@ -38,5 +39,19 @@ export const firstAidKit = new ConsumableDefinition(
     effectType: 'REMEDY',
     amount: 8,
     energy: 0,
+  },
+);
+
+export const friendNote = new ReadableDefinition(
+  {
+    name: 'friendNote',
+    label: "Friend's Note",
+    description: 'Small Handwritten Note',
+  },
+  'PERMANENT',
+  null,
+  {
+    title: 'LATE!!!',
+    paragraphs: ['GG', 'GG2', 'GG3'],
   },
 );
