@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import { Row, Value, Values } from '@stargate-oss/stargate-grpc-node-client';
 
-import { AstraClient } from '@infra/astra-client/astra-client';
+import { AstraClient } from '@infra/astra-client/astra.client';
 import { ItemStoreInterface } from '@interfaces/item-store.interface';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { WeaponDefinition } from '@definitions/weapon.definition';

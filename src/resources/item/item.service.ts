@@ -1,4 +1,4 @@
-import { Injectable, Inject, Scope } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 
 import { CreateItemDto } from '@dtos/create-item.dto';
 import { ItemStoreInterface } from '@interfaces/item-store.interface';
