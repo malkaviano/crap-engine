@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import { Row, Value, Values } from '@stargate-oss/stargate-grpc-node-client';
 
@@ -13,36 +13,13 @@ import { ConsumeInterface } from '@interfaces/consume.interface';
 import { InfraError } from '@errors/infra.error';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { ReadableDefinition } from '@definitions/readable.definition';
-
-type QueryInfo = {
-  readonly weapon: Value;
-  readonly consumable: Value;
-  readonly readable: Value;
-};
-
-type ItemStored = {
-  readonly identity: { name: string; label: string; description: string };
-  readonly category: string;
-  readonly usability: string;
-  readonly skillName: string | null;
-  readonly weapon: string | null;
-  readonly consumable: string | null;
-  readonly readable: string | null;
-};
+import { ItemStored } from '@infra/stores/item-stored.type';
+import { QueryInfo } from '@infra/stores/query-info.type';
+import { ReadableInterface } from '@interfaces/readable.interface';
 
 @Injectable()
-export class ItemStoreService implements ItemStoreInterface {
-  private readonly fields = [
-    'name',
-    'category',
-    'usability',
-    'label',
-    'description',
-    'skillname',
-    'weapon',
-    'consumable',
-    'readable',
-  ].join(',');
+export class ItemStoreService implements OnModuleInit, ItemStoreInterface {
+  private readonly fields: string;
 
   private readonly insertStmt: string;
 
@@ -55,7 +32,17 @@ export class ItemStoreService implements ItemStoreInterface {
     private readonly configValuesHelper: ConfigValuesHelper,
     private readonly logger: CustomLoggerHelper,
   ) {
-    this.logger.setContext(ItemStoreService.name);
+    this.fields = [
+      'name',
+      'category',
+      'usability',
+      'label',
+      'description',
+      'skillname',
+      'weapon',
+      'consumable',
+      'readable',
+    ].join(',');
 
     this.insertStmt =
       `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items ` +
@@ -64,6 +51,15 @@ export class ItemStoreService implements ItemStoreInterface {
     this.selectStmt = `select ${this.fields} from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items where name = ?;`;
 
     this.deleteStmt = `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items where name = ?;`;
+  }
+
+  public async onModuleInit(): Promise<void> {
+    await this.astraClient.executeQuery(
+      `CREATE TABLE IF NOT EXISTS ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items ` +
+        '(name text,category text,usability text,consumable text,' +
+        'description text,label text,readable text,skillname text,' +
+        'weapon text,PRIMARY KEY (name));',
+    );
   }
 
   public async getItem(name: string): Promise<ItemDefinition | null> {
@@ -179,6 +175,15 @@ export class ItemStoreService implements ItemStoreInterface {
         stored['usability'],
         stored['skillName'],
         consume,
+      );
+    } else if (stored['category'] === 'READABLE' && stored['readable']) {
+      const readable: ReadableInterface = JSON.parse(stored['readable']);
+
+      return new ReadableDefinition(
+        stored['identity'],
+        stored['usability'],
+        stored['skillName'],
+        readable,
       );
     }
 

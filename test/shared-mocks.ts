@@ -1,7 +1,7 @@
 import { mock, reset } from 'ts-mockito';
 
 import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
-import { ItemStoreService } from '@root/infra/stores/item.store.service';
+import { ItemStoreService } from '@root/infra/stores/item.store';
 import { DiceSetHelper } from '@root/helpers/dice-set.helper.service';
 
 export const mockedCustomLoggerHelper = mock(CustomLoggerHelper);

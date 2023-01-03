@@ -12,8 +12,8 @@ import {
   mockedCustomLoggerHelper,
   mockedDiceSetHelper,
   mockedItemStore,
-} from '../../../shared-mocks';
-import { firstAidKit, friendNote, sword } from '../../../fakes';
+} from '../../shared-mocks';
+import { firstAidKit, friendNote, sword } from '../../fakes';
 
 describe('ItemService', () => {
   let service: ItemService;

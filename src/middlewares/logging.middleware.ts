@@ -1,23 +1,16 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 
 import { Request, Response, NextFunction } from 'express';
-import { v4 } from 'uuid';
 
-import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
-import { DateTimeHelper } from '@root/helpers/date-time.helper.service';
+import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
+import { DateTimeHelper } from '@helpers/date-time.helper.service';
 
 @Injectable()
 export class LoggingMiddleware implements NestMiddleware {
   constructor(private readonly dateTimeHelper: DateTimeHelper) {}
 
   use(request: Request, response: Response, next: NextFunction) {
-    const uuid = v4();
-
-    request.headers.requestId = uuid;
-
-    const logger = new CustomLoggerHelper(request, this.dateTimeHelper);
-
-    logger.setContext('SERVER');
+    const logger = new CustomLoggerHelper(this.dateTimeHelper);
 
     logger.log('Request started', {
       headers: request.headers,

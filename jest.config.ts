@@ -23,7 +23,8 @@ const config: Config.InitialOptions = {
     prefix: '<rootDir>/',
   }),
   modulePathIgnorePatterns: ['<rootDir>/lib/', '<rootDir>/dist/'],
-  setupFiles: ['<rootDir>/test/setEnvVars.ts'],
+  setupFiles: ['<rootDir>/test/set-env.ts'],
+  setupFilesAfterEnv: ['<rootDir>/test/test-setup.ts'],
 };
 
 export default config;

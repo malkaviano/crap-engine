@@ -21,12 +21,9 @@ describe('CustomLoggerHelper', () => {
           useValue: instance(mockedDatetimeHelper),
         },
       ],
-    })
-      .overrideProvider('REQUEST')
-      .useValue({ headers: { requestId: 'requestId' } })
-      .compile();
+    }).compile();
 
-    service = await module.resolve<CustomLoggerHelper>(CustomLoggerHelper);
+    service = module.get<CustomLoggerHelper>(CustomLoggerHelper);
 
     // eslint-disable-next-line
     (service as any).logger = instance(mockedLogger);
@@ -46,7 +43,7 @@ describe('CustomLoggerHelper', () => {
 
       service.error('Problem occurred', e);
 
-      verify(mockedLogger.error(anything(), anyString())).once();
+      verify(mockedLogger.error(anything())).once();
     });
   });
 
@@ -56,7 +53,7 @@ describe('CustomLoggerHelper', () => {
 
       service.warn('Warn occurred', obj);
 
-      verify(mockedLogger.warn(anything(), anyString())).once();
+      verify(mockedLogger.warn(anything())).once();
     });
   });
 
@@ -66,7 +63,7 @@ describe('CustomLoggerHelper', () => {
 
       service.log('Info occurred', obj);
 
-      verify(mockedLogger.log(anything(), anyString())).once();
+      verify(mockedLogger.log(anything())).once();
     });
   });
 });

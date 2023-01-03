@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Scope } from '@nestjs/common';
 
 import { CreateItemDto } from '@dtos/create-item.dto';
 import { ItemStoreInterface } from '@interfaces/item-store.interface';
@@ -9,17 +9,15 @@ import { ITEM_STORE_TOKEN } from '@root/tokens';
 import { DiceSetHelper } from '@root/helpers/dice-set.helper.service';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ApplicationError } from '@errors/application.error';
-import { ReadableDefinition } from '../../definitions/readable.definition';
+import { ReadableDefinition } from '@definitions/readable.definition';
 
 @Injectable()
 export class ItemService {
   constructor(
-    @Inject(ITEM_STORE_TOKEN) private readonly itemStore: ItemStoreInterface,
     private readonly customLoggerHelper: CustomLoggerHelper,
+    @Inject(ITEM_STORE_TOKEN) private readonly itemStore: ItemStoreInterface,
     private readonly diceSetHelper: DiceSetHelper,
-  ) {
-    this.customLoggerHelper.setContext(ItemService.name);
-  }
+  ) {}
 
   public async save(dto: CreateItemDto): Promise<void> {
     this.customLoggerHelper.log('Saving item', dto);

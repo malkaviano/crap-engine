@@ -1,31 +1,13 @@
-import {
-  Inject,
-  Injectable,
-  LoggerService,
-  Logger,
-  Scope,
-} from '@nestjs/common';
+import { Injectable, LoggerService, Logger } from '@nestjs/common';
 
-import { Request } from 'express';
+import { DateTimeHelper } from '@helpers/date-time.helper.service';
 
-import { DateTimeHelper } from '@root/helpers/date-time.helper.service';
-
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class CustomLoggerHelper implements LoggerService {
-  private context = 'NO_CONTEXT';
   private readonly logger: LoggerService;
-  private readonly requestId: string;
 
-  constructor(
-    @Inject('REQUEST') request: Request,
-    private readonly dateTimeHelper: DateTimeHelper,
-  ) {
+  constructor(private readonly dateTimeHelper: DateTimeHelper) {
     this.logger = new Logger();
-    this.requestId = request.headers.requestId as string;
-  }
-
-  public setContext(context: string): void {
-    this.context = context;
   }
 
   public error(message: string, exception: Error): void {
@@ -33,7 +15,6 @@ export class CustomLoggerHelper implements LoggerService {
 
     const errorObj = {
       timestamp,
-      requestId: this.requestId,
       message,
       exception: {
         name: exception.name,
@@ -42,7 +23,7 @@ export class CustomLoggerHelper implements LoggerService {
       },
     };
 
-    this.logger.error(errorObj, this.context);
+    this.logger.error(errorObj);
   }
 
   public warn(message: string, data: object = {}): void {
@@ -50,15 +31,11 @@ export class CustomLoggerHelper implements LoggerService {
 
     const dataObj = {
       timestamp,
-      requestId: this.requestId,
       message,
       data,
     };
 
-    this.logger.warn(
-      JSON.stringify(dataObj, this.getCircularReplacer()),
-      this.context,
-    );
+    this.logger.warn(JSON.stringify(dataObj, this.getCircularReplacer()));
   }
 
   public log(message: string, data: object = {}): void {
@@ -66,15 +43,11 @@ export class CustomLoggerHelper implements LoggerService {
 
     const dataObj = {
       timestamp,
-      requestId: this.requestId,
       message,
       data,
     };
 
-    this.logger.log(
-      JSON.stringify(dataObj, this.getCircularReplacer()),
-      this.context,
-    );
+    this.logger.log(JSON.stringify(dataObj, this.getCircularReplacer()));
   }
 
   private getCircularReplacer = () => {
