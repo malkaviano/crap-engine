@@ -9,7 +9,9 @@ import { IdentifiableInterface } from '@interfaces/identifiable.interface';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { ApplicationError } from '@errors/application.error';
 import { InventorySummaryInterface } from '@interfaces/inventory-summary.interface';
-import { plainToInstance } from 'class-transformer';
+import { ConverterHelperService } from '@helpers/converter.helper.service';
+import { ConsumableEntity } from '@entities/consumable.entity';
+import { ReadableEntity } from '@entities/readable.entity';
 
 @Injectable()
 export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
@@ -35,6 +37,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     private readonly astraClient: AstraClient,
     private readonly configValuesHelper: ConfigValuesHelper,
     private readonly logger: CustomLoggerHelper,
+    private readonly converterHelperService: ConverterHelperService,
   ) {
     this.fields = ['interactive_id', 'item_id', 'item_payload'].join(',');
 
@@ -107,10 +110,10 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     }
   }
 
-  public async look(
+  public async look<T extends WeaponEntity | ConsumableEntity | ReadableEntity>(
     interactiveId: string,
     itemId: string,
-  ): Promise<IdentifiableInterface | null> {
+  ): Promise<T | null> {
     try {
       const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
 
@@ -126,11 +129,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
       if (rows?.length) {
         const obj = JSON.parse(rows[0].getValuesList()[2].getString());
 
-        const category = Object.getOwnPropertyDescriptor(obj, 'category');
-
-        if (category && category.value === 'WEAPON') {
-          return plainToInstance(WeaponEntity, obj);
-        }
+        return this.converterHelperService.inflateItemEntity<T>(obj);
       }
 
       return null;
@@ -234,7 +233,8 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
       let equipped: WeaponEntity | null = null;
 
       if (weapon) {
-        equipped = plainToInstance(WeaponEntity, weapon);
+        equipped =
+          this.converterHelperService.inflateItemEntity<WeaponEntity>(weapon);
       }
 
       return {

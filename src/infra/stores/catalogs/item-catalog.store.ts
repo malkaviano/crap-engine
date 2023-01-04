@@ -1,15 +1,14 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
-import { plainToInstance } from 'class-transformer';
-
 import { AstraClient } from '@root/infra/clients/astra.client';
 import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
-import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ItemDefinition } from '@definitions/item.definition';
-import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { InfraError } from '@errors/infra.error';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
+import { ConverterHelperService } from '@helpers/converter.helper.service';
+import { WeaponDefinition } from '@definitions/weapon.definition';
+import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ReadableDefinition } from '@definitions/readable.definition';
 
 @Injectable()
@@ -28,6 +27,7 @@ export class ItemCatalogStore
     private readonly astraClient: AstraClient,
     private readonly configValuesHelper: ConfigValuesHelper,
     private readonly logger: CustomLoggerHelper,
+    private readonly converterHelperService: ConverterHelperService,
   ) {
     this.fields = ['category', 'name', 'payload'].join(',');
 
@@ -47,10 +47,9 @@ export class ItemCatalogStore
     );
   }
 
-  public async getItem(
-    category: string,
-    name: string,
-  ): Promise<ItemDefinition | null> {
+  public async getItem<
+    T extends WeaponDefinition | ConsumableDefinition | ReadableDefinition,
+  >(category: string, name: string): Promise<T | null> {
     try {
       const categoryValue = this.astraClient.newStringValue(category);
 
@@ -68,9 +67,9 @@ export class ItemCatalogStore
           .map((r) => {
             const json = JSON.parse(r.getValuesList()[0].getString());
 
-            return this.inflateItem(json);
+            return this.converterHelperService.inflateItemDefinition<T>(json);
           })
-          .filter((element): element is ItemDefinition => {
+          .filter((element): element is T => {
             return element !== null;
           });
 
@@ -119,17 +118,5 @@ export class ItemCatalogStore
 
       throw new InfraError(error.message);
     }
-  }
-
-  private inflateItem(stored: { category: string }): ItemDefinition | null {
-    if (stored['category'] === 'WEAPON') {
-      return plainToInstance(WeaponDefinition, stored);
-    } else if (stored['category'] === 'CONSUMABLE') {
-      return plainToInstance(ConsumableDefinition, stored);
-    } else if (stored['category'] === 'READABLE') {
-      return plainToInstance(ReadableDefinition, stored);
-    }
-
-    return null;
   }
 }

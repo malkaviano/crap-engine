@@ -4,6 +4,9 @@ import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
 import { ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
 import { ItemCatalogStore } from '@infra/stores/catalogs/item-catalog.store';
+import { WeaponDefinition } from '@definitions/weapon.definition';
+import { ReadableDefinition } from '@definitions/readable.definition';
+import { ConsumableDefinition } from '@definitions/consumable.definition';
 
 import { firstAidKit, friendNote, sword } from '../fakes';
 
@@ -31,14 +34,17 @@ describe('ItemCatalogStore', () => {
 
     await service.upsertItem(friendNote);
 
-    let result1 = await service.getItem(sword.category, sword.info.name);
+    let result1 = await service.getItem<WeaponDefinition>(
+      sword.category,
+      sword.info.name,
+    );
 
-    let result2 = await service.getItem(
+    let result2 = await service.getItem<ReadableDefinition>(
       friendNote.category,
       friendNote.info.name,
     );
 
-    let result3 = await service.getItem(
+    let result3 = await service.getItem<ConsumableDefinition>(
       firstAidKit.category,
       firstAidKit.info.name,
     );
