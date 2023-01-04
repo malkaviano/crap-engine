@@ -1,14 +1,8 @@
 import { IdentifiableInterface } from '@interfaces/identifiable.interface';
 import { InventorySummaryInterface } from '@interfaces/inventory-summary.interface';
-import { WeaponEntity } from '@entities/weapon.entity';
 
-export interface ItemEntityStoreInterface {
-  install(
-    interactiveId: string,
-    unlocked: boolean,
-    max: number,
-    equipped: WeaponEntity | null,
-  ): Promise<void>;
+export interface InventoryStoreInterface {
+  setLootToken(interactiveId: string, lootToken: string): Promise<void>;
   store(
     interactiveId: string,
     itemEntity: IdentifiableInterface,
@@ -21,5 +15,5 @@ export interface ItemEntityStoreInterface {
   equip(actorId: string, weaponId: string): Promise<void>;
   unEquip(actorId: string): Promise<void>;
   summary(actorId: string): Promise<InventorySummaryInterface>;
-  uninstall(interactiveId: string): Promise<void>;
+  remove(interactiveId: string): Promise<void>;
 }

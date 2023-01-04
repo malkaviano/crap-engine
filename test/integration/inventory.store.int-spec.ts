@@ -1,21 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { ItemEntityStore } from '@infra/stores/item-entity.store';
+import { InventoryStore } from '@root/infra/stores/inventory.store';
 import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
-import { ITEM_ENTITY_STORE_TOKEN } from '@root/tokens';
+import { INVENTORY_STORE_TOKEN } from '@root/tokens';
 
 import { knifeEntity, swordEntity } from '../fakes';
 
-describe('ItemEntitiesStoreService', () => {
-  let service: ItemEntityStore;
+describe('InventoryStore', () => {
+  let service: InventoryStore;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [HelpersModule, InfraModule],
     }).compile();
 
-    service = module.get(ITEM_ENTITY_STORE_TOKEN);
+    service = module.get(INVENTORY_STORE_TOKEN);
 
     await service.onModuleInit();
   });
@@ -25,16 +25,13 @@ describe('ItemEntitiesStoreService', () => {
   });
 
   it('should execute all inventory actions', async () => {
-    await service.uninstall('actor1');
-
-    await service.install('actor1', true, 10, null);
+    await service.remove('actor1');
 
     let summary = await service.summary('actor1');
 
     expect(summary).toEqual({
-      quantity: 1,
-      max: 10,
-      unlocked: true,
+      quantity: 0,
+      lootToken: null,
       equipped: null,
     });
 
@@ -50,12 +47,13 @@ describe('ItemEntitiesStoreService', () => {
 
     expect(result).toEqual(knifeEntity);
 
+    await service.setLootToken('actor1', 'lootToken');
+
     summary = await service.summary('actor1');
 
     expect(summary).toEqual({
       quantity: 2,
-      max: 10,
-      unlocked: true,
+      lootToken: 'lootToken',
       equipped: null,
     });
 
@@ -69,8 +67,7 @@ describe('ItemEntitiesStoreService', () => {
 
     expect(summary).toEqual({
       quantity: 1,
-      max: 10,
-      unlocked: true,
+      lootToken: 'lootToken',
       equipped: swordEntity,
     });
 
@@ -84,8 +81,7 @@ describe('ItemEntitiesStoreService', () => {
 
     expect(summary).toEqual({
       quantity: 1,
-      max: 10,
-      unlocked: true,
+      lootToken: 'lootToken',
       equipped: knifeEntity,
     });
 
@@ -99,8 +95,7 @@ describe('ItemEntitiesStoreService', () => {
 
     expect(summary).toEqual({
       quantity: 2,
-      max: 10,
-      unlocked: true,
+      lootToken: 'lootToken',
       equipped: null,
     });
 

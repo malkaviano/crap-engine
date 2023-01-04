@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
-import { ItemEntityStoreInterface } from '@interfaces/item-entity-store.interface';
+import { InventoryStoreInterface } from '@interfaces/inventory-store.interface';
 import { AstraClient } from '@root/infra/clients/astra.client';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { Value, Values } from '@stargate-oss/stargate-grpc-node-client';
@@ -12,7 +12,7 @@ import { ApplicationError } from '@errors/application.error';
 import { InventorySummaryInterface } from '@interfaces/inventory-summary.interface';
 
 @Injectable()
-export class ItemEntityStore implements OnModuleInit, ItemEntityStoreInterface {
+export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
   private readonly fields: string;
 
   private readonly selectStmt: string;
@@ -59,13 +59,13 @@ export class ItemEntityStore implements OnModuleInit, ItemEntityStoreInterface {
       'set equipped = null where interactive_id = ?;';
 
     this.summaryStmt =
-      'select count(*) as quantity, max, unlocked, equipped ' +
+      'select count(*) as quantity, loot_token, equipped ' +
       `from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
       'where interactive_id = ?;';
 
     this.installStmt =
       `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
-      `(interactive_id, unlocked, max, equipped) values(?,?,?,?);`;
+      `(interactive_id, loot_token) values(?,?);`;
 
     this.uninstallStmt =
       `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
@@ -75,9 +75,8 @@ export class ItemEntityStore implements OnModuleInit, ItemEntityStoreInterface {
   public async onModuleInit(): Promise<void> {
     await this.astraClient.executeQuery(
       `CREATE TABLE IF NOT EXISTS ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
-        '(interactive_id text,item_id text,' +
-        'unlocked boolean static,max int static,equipped text static,' +
-        'item_payload text,' +
+        '(interactive_id text,item_id text,item_payload text,' +
+        'loot_token text static,equipped text static,' +
         'PRIMARY KEY (interactive_id, item_id));',
     );
   }
@@ -246,12 +245,10 @@ export class ItemEntityStore implements OnModuleInit, ItemEntityStoreInterface {
 
       const quantity = values[0].getInt();
 
-      const max = values[1].getInt();
+      const lootToken = values[1].hasString() ? values[1].getString() : null;
 
-      const unlocked = values[2].getBoolean();
-
-      const weapon = values[3].hasString()
-        ? JSON.parse(values[3].getString())
+      const weapon = values[2].hasString()
+        ? JSON.parse(values[2].getString())
         : null;
 
       let equipped: WeaponEntity | null = null;
@@ -274,8 +271,7 @@ export class ItemEntityStore implements OnModuleInit, ItemEntityStoreInterface {
 
       return {
         quantity,
-        max,
-        unlocked,
+        lootToken,
         equipped,
       };
     } catch (error) {
@@ -285,29 +281,18 @@ export class ItemEntityStore implements OnModuleInit, ItemEntityStoreInterface {
     }
   }
 
-  public async install(
+  public async setLootToken(
     interactiveId: string,
-    unlocked: boolean,
-    max: number,
-    equipped: WeaponEntity | null,
+    lootToken: string,
   ): Promise<void> {
     try {
       const queryValues = new Values();
 
       const interactiveIdValue = this.newStringValue(interactiveId);
 
-      const lockedValue = this.newBooleanValue(unlocked);
+      const lootTokenValue = this.newStringValue(lootToken);
 
-      const maxValue = this.newIntValue(max);
-
-      const weaponValue = this.newObjectValue(equipped);
-
-      queryValues.setValuesList([
-        interactiveIdValue,
-        lockedValue,
-        maxValue,
-        weaponValue,
-      ]);
+      queryValues.setValuesList([interactiveIdValue, lootTokenValue]);
 
       await this.astraClient.executeQuery(this.installStmt, queryValues);
     } catch (error) {
@@ -317,7 +302,7 @@ export class ItemEntityStore implements OnModuleInit, ItemEntityStoreInterface {
     }
   }
 
-  public async uninstall(interactiveId: string): Promise<void> {
+  public async remove(interactiveId: string): Promise<void> {
     try {
       const queryValues = new Values();
 

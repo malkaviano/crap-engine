@@ -7,7 +7,7 @@ import { ItemCatalogStore } from '@infra/stores/catalogs/item-catalog.store';
 
 import { firstAidKit, friendNote, sword } from '../fakes';
 
-describe('ItemStoreService', () => {
+describe('ItemCatalogStore', () => {
   let service: ItemCatalogStore;
 
   beforeAll(async () => {
