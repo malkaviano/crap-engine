@@ -1,4 +1,4 @@
-export type ItemStored = {
+export type ItemDefinitionStored = {
   readonly itemInfo: { name: string; label: string; description: string };
   readonly category: string;
   readonly usability: string;

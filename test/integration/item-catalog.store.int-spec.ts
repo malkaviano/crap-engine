@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
-import { ITEM_STORE_TOKEN } from '@root/tokens';
+import { ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
 import { ItemCatalogStore } from '@infra/stores/catalogs/item-catalog.store';
 
 import { firstAidKit, friendNote, sword } from '../fakes';
@@ -15,7 +15,7 @@ describe('ItemStoreService', () => {
       imports: [HelpersModule, InfraModule],
     }).compile();
 
-    service = await module.get(ITEM_STORE_TOKEN);
+    service = await module.get(ITEM_CATALOG_STORE_TOKEN);
 
     await service.onModuleInit();
   });

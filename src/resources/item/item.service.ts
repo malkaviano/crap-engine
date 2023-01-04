@@ -1,11 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
 
 import { CreateItemDto } from '@dtos/create-item.dto';
-import { ItemCatalogStoreInterface } from '@interfaces/item-store.interface';
+import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
 import { ItemDefinition } from '@definitions/item.definition';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
-import { ITEM_STORE_TOKEN } from '@root/tokens';
+import { ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
 import { DiceSetHelper } from '@root/helpers/dice-set.helper.service';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ApplicationError } from '@errors/application.error';
@@ -15,7 +15,7 @@ import { ReadableDefinition } from '@definitions/readable.definition';
 export class ItemService {
   constructor(
     private readonly customLoggerHelper: CustomLoggerHelper,
-    @Inject(ITEM_STORE_TOKEN)
+    @Inject(ITEM_CATALOG_STORE_TOKEN)
     private readonly itemStore: ItemCatalogStoreInterface,
     private readonly diceSetHelper: DiceSetHelper,
   ) {}

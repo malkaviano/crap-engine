@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import * as grpc from '@grpc/grpc-js';
 import {
+  Batch,
   promisifyStargateClient,
   Query,
   Response,
@@ -44,5 +45,9 @@ export class AstraClient {
     query.setCql(stmt);
 
     return this.promisifyStargateClient.executeQuery(query);
+  }
+
+  public async executeBatch(batch: Batch): Promise<Response> {
+    return this.promisifyStargateClient.executeBatch(batch);
   }
 }

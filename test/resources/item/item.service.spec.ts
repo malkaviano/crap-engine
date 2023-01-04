@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { deepEqual, instance, verify, when } from 'ts-mockito';
 
 import { ItemService } from '@resources/item/item.service';
-import { ITEM_STORE_TOKEN } from '@root/tokens';
+import { ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
 import { CustomLoggerHelper } from '@root/helpers/custom-logger.helper.service';
 import { DiceSetHelper } from '@root/helpers/dice-set.helper.service';
 import { ItemDefinition } from '@definitions/item.definition';
@@ -23,7 +23,7 @@ describe('ItemService', () => {
       providers: [
         ItemService,
         {
-          provide: ITEM_STORE_TOKEN,
+          provide: ITEM_CATALOG_STORE_TOKEN,
           useValue: instance(mockedItemStore),
         },
         {

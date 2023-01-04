@@ -31,6 +31,9 @@
       ],
       "@dtos/*": [
         "src/dtos/*"
+      ],
+      "@entities/*": [
+        "src/entities/*"
       ]
     }
   }

@@ -2,8 +2,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import { Row, Value, Values } from '@stargate-oss/stargate-grpc-node-client';
 
-import { AstraClient } from '@infra/astra-client/astra.client';
-import { ItemCatalogStoreInterface } from '@interfaces/item-store.interface';
+import { AstraClient } from '@root/infra/clients/astra.client';
+import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ItemDefinition } from '@definitions/item.definition';
@@ -13,8 +13,8 @@ import { ConsumeInterface } from '@interfaces/consume.interface';
 import { InfraError } from '@errors/infra.error';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { ReadableDefinition } from '@definitions/readable.definition';
-import { ItemStored } from '@root/infra/stores/catalogs/item-stored.type';
-import { QueryInfo } from '@infra/stores/catalogs/query-info.type';
+import { ItemDefinitionStored } from '@root/infra/stores/types/item-definition-stored.type';
+import { QueryInfo } from '@infra/stores/types/query-info.type';
 import { ReadableInterface } from '@interfaces/readable.interface';
 
 @Injectable()
@@ -160,7 +160,7 @@ export class ItemCatalogStore
       });
   }
 
-  private inflateItem(stored: ItemStored): ItemDefinition | null {
+  private inflateItem(stored: ItemDefinitionStored): ItemDefinition | null {
     if (
       stored['category'] === 'WEAPON' &&
       stored['weapon'] &&
