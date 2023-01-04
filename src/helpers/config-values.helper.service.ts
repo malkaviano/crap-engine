@@ -12,6 +12,8 @@ export class ConfigValuesHelper {
   public readonly ASTRA_DB_KEYSPACE: string;
   public readonly ASTRA_DB_REGION: string;
   public readonly ASTRA_DB_ID: string;
+  public readonly AMQP_URL: string;
+  public readonly AMQP_PORT: number;
 
   constructor() {
     // Stops the server boot if any required config is missing
@@ -74,6 +76,18 @@ export class ConfigValuesHelper {
 
     if (!this.ASTRA_DB_KEYSPACE.length) {
       throw new Error('ASTRA_DB_KEYSPACE is required');
+    }
+
+    this.AMQP_URL = process.env.AMQP_URL ?? '';
+
+    if (!this.AMQP_URL.length) {
+      throw new Error('AMQP_URL is required');
+    }
+
+    this.AMQP_PORT = parseInt(process.env.AMQP_PORT ?? '');
+
+    if (!this.AMQP_PORT) {
+      throw new Error('AMQP_PORT is required');
     }
   }
 }
