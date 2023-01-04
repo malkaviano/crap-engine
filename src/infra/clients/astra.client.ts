@@ -8,6 +8,7 @@ import {
   Response,
   StargateBearerToken,
   StargateClient,
+  Value,
   Values,
 } from '@stargate-oss/stargate-grpc-node-client';
 import { PromisifiedStargateClient } from '@stargate-oss/stargate-grpc-node-client/lib/util/promise';
@@ -49,5 +50,61 @@ export class AstraClient {
 
   public async executeBatch(batch: Batch): Promise<Response> {
     return this.promisifyStargateClient.executeBatch(batch);
+  }
+
+  public newObjectValue(value: unknown): Value {
+    const intValue = new Value();
+
+    if (value) {
+      intValue.setString(JSON.stringify(value));
+    } else {
+      intValue.setNull(new Value.Null());
+    }
+
+    return intValue;
+  }
+
+  public newIntValue(value: number): Value {
+    const intValue = new Value();
+
+    if (value) {
+      intValue.setInt(value);
+    } else {
+      intValue.setNull(new Value.Null());
+    }
+
+    return intValue;
+  }
+
+  public newBooleanValue(value: boolean): Value {
+    const boolValue = new Value();
+
+    if (value) {
+      boolValue.setBoolean(value);
+    } else {
+      boolValue.setNull(new Value.Null());
+    }
+
+    return boolValue;
+  }
+
+  public newStringValue(value: string | null): Value {
+    const strValue = new Value();
+
+    if (value) {
+      strValue.setString(value);
+    } else {
+      strValue.setNull(new Value.Null());
+    }
+
+    return strValue;
+  }
+
+  public createValues(...values: Value[]): Values {
+    const queryValues = new Values();
+
+    queryValues.setValuesList(values);
+
+    return queryValues;
   }
 }

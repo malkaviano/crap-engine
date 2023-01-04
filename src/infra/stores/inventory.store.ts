@@ -3,7 +3,6 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InventoryStoreInterface } from '@interfaces/inventory-store.interface';
 import { AstraClient } from '@root/infra/clients/astra.client';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
-import { Value, Values } from '@stargate-oss/stargate-grpc-node-client';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { InfraError } from '@errors/infra.error';
 import { IdentifiableInterface } from '@interfaces/identifiable.interface';
@@ -86,17 +85,20 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     itemEntity: IdentifiableInterface,
   ): Promise<void> {
     try {
-      const queryValues = new Values();
+      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
 
-      const interactiveIdValue = this.newStringValue(interactiveId);
+      const itemIdValue = this.astraClient.newStringValue(itemEntity.id);
 
-      const itemIdValue = this.newStringValue(itemEntity.id);
+      const weaponValue = this.astraClient.newObjectValue(itemEntity);
 
-      const weaponValue = this.newObjectValue(itemEntity);
-
-      queryValues.setValuesList([interactiveIdValue, itemIdValue, weaponValue]);
-
-      await this.astraClient.executeQuery(this.insertStmt, queryValues);
+      await this.astraClient.executeQuery(
+        this.insertStmt,
+        this.astraClient.createValues(
+          interactiveIdValue,
+          itemIdValue,
+          weaponValue,
+        ),
+      );
     } catch (error) {
       this.logger.error(error.message, error);
 
@@ -109,17 +111,13 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     itemId: string,
   ): Promise<IdentifiableInterface | null> {
     try {
-      const queryValues = new Values();
+      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
 
-      const interactiveIdValue = this.newStringValue(interactiveId);
-
-      const itemIdValue = this.newStringValue(itemId);
-
-      queryValues.setValuesList([interactiveIdValue, itemIdValue]);
+      const itemIdValue = this.astraClient.newStringValue(itemId);
 
       const response = await this.astraClient.executeQuery(
         this.selectStmt,
-        queryValues,
+        this.astraClient.createValues(interactiveIdValue, itemIdValue),
       );
 
       const rows = response.getResultSet()?.getRowsList();
@@ -156,15 +154,14 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
   public async drop(interactiveId: string, itemId: string): Promise<void> {
     try {
-      const queryValues = new Values();
+      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
 
-      const interactiveIdValue = this.newStringValue(interactiveId);
+      const itemIdValue = this.astraClient.newStringValue(itemId);
 
-      const itemIdValue = this.newStringValue(itemId);
-
-      queryValues.setValuesList([interactiveIdValue, itemIdValue]);
-
-      await this.astraClient.executeQuery(this.deleteStmt, queryValues);
+      await this.astraClient.executeQuery(
+        this.deleteStmt,
+        this.astraClient.createValues(interactiveIdValue, itemIdValue),
+      );
     } catch (error) {
       this.logger.error(error.message, error);
 
@@ -184,15 +181,14 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     await this.unEquip(actorId);
 
     try {
-      const queryValues = new Values();
+      const interactiveIdValue = this.astraClient.newStringValue(actorId);
 
-      const interactiveIdValue = this.newStringValue(actorId);
+      const weaponValue = this.astraClient.newObjectValue(weapon);
 
-      const weaponValue = this.newObjectValue(weapon);
-
-      queryValues.setValuesList([interactiveIdValue, weaponValue]);
-
-      await this.astraClient.executeQuery(this.equipStmt, queryValues);
+      await this.astraClient.executeQuery(
+        this.equipStmt,
+        this.astraClient.createValues(interactiveIdValue, weaponValue),
+      );
     } catch (error) {
       this.logger.error(error.message, error);
 
@@ -208,13 +204,12 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     }
 
     try {
-      const queryValues = new Values();
+      const interactiveIdValue = this.astraClient.newStringValue(actorId);
 
-      const interactiveIdValue = this.newStringValue(actorId);
-
-      queryValues.setValuesList([interactiveIdValue]);
-
-      await this.astraClient.executeQuery(this.unEquipStmt, queryValues);
+      await this.astraClient.executeQuery(
+        this.unEquipStmt,
+        this.astraClient.createValues(interactiveIdValue),
+      );
     } catch (error) {
       this.logger.error(error.message, error);
 
@@ -224,15 +219,11 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
   public async summary(actorId: string): Promise<InventorySummaryInterface> {
     try {
-      const queryValues = new Values();
-
-      const interactiveIdValue = this.newStringValue(actorId);
-
-      queryValues.setValuesList([interactiveIdValue]);
+      const interactiveIdValue = this.astraClient.newStringValue(actorId);
 
       const response = await this.astraClient.executeQuery(
         this.summaryStmt,
-        queryValues,
+        this.astraClient.createValues(interactiveIdValue),
       );
 
       const rows = response.getResultSet()?.getRowsList();
@@ -286,15 +277,14 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     lootToken: string,
   ): Promise<void> {
     try {
-      const queryValues = new Values();
+      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
 
-      const interactiveIdValue = this.newStringValue(interactiveId);
+      const lootTokenValue = this.astraClient.newStringValue(lootToken);
 
-      const lootTokenValue = this.newStringValue(lootToken);
-
-      queryValues.setValuesList([interactiveIdValue, lootTokenValue]);
-
-      await this.astraClient.executeQuery(this.installStmt, queryValues);
+      await this.astraClient.executeQuery(
+        this.installStmt,
+        this.astraClient.createValues(interactiveIdValue, lootTokenValue),
+      );
     } catch (error) {
       this.logger.error(error.message, error);
 
@@ -304,65 +294,16 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
   public async remove(interactiveId: string): Promise<void> {
     try {
-      const queryValues = new Values();
+      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
 
-      const interactiveIdValue = this.newStringValue(interactiveId);
-
-      queryValues.setValuesList([interactiveIdValue]);
-
-      await this.astraClient.executeQuery(this.uninstallStmt, queryValues);
+      await this.astraClient.executeQuery(
+        this.uninstallStmt,
+        this.astraClient.createValues(interactiveIdValue),
+      );
     } catch (error) {
       this.logger.error(error.message, error);
 
       throw new InfraError(error.message);
     }
-  }
-
-  private newObjectValue(value: unknown) {
-    const intValue = new Value();
-
-    if (value) {
-      intValue.setString(JSON.stringify(value));
-    } else {
-      intValue.setNull(new Value.Null());
-    }
-
-    return intValue;
-  }
-
-  private newIntValue(value: number) {
-    const intValue = new Value();
-
-    if (value) {
-      intValue.setInt(value);
-    } else {
-      intValue.setNull(new Value.Null());
-    }
-
-    return intValue;
-  }
-
-  private newBooleanValue(value: boolean) {
-    const boolValue = new Value();
-
-    if (value) {
-      boolValue.setBoolean(value);
-    } else {
-      boolValue.setNull(new Value.Null());
-    }
-
-    return boolValue;
-  }
-
-  private newStringValue(value: string | null) {
-    const strValue = new Value();
-
-    if (value) {
-      strValue.setString(value);
-    } else {
-      strValue.setNull(new Value.Null());
-    }
-
-    return strValue;
   }
 }
