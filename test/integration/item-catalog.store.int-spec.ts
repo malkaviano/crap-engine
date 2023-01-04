@@ -31,11 +31,17 @@ describe('ItemCatalogStore', () => {
 
     await service.upsertItem(friendNote);
 
-    let result1 = await service.getItem(sword.category, sword.name);
+    let result1 = await service.getItem(sword.category, sword.info.name);
 
-    let result2 = await service.getItem(friendNote.category, friendNote.name);
+    let result2 = await service.getItem(
+      friendNote.category,
+      friendNote.info.name,
+    );
 
-    let result3 = await service.getItem(firstAidKit.category, firstAidKit.name);
+    let result3 = await service.getItem(
+      firstAidKit.category,
+      firstAidKit.info.name,
+    );
 
     expect(result1).toEqual(sword);
 
@@ -43,17 +49,20 @@ describe('ItemCatalogStore', () => {
 
     expect(result3).toEqual(firstAidKit);
 
-    await service.removeItem(sword.category, sword.name);
+    await service.removeItem(sword.category, sword.info.name);
 
-    await service.removeItem(friendNote.category, friendNote.name);
+    await service.removeItem(friendNote.category, friendNote.info.name);
 
-    await service.removeItem(firstAidKit.category, firstAidKit.name);
+    await service.removeItem(firstAidKit.category, firstAidKit.info.name);
 
-    result1 = await service.getItem(sword.category, sword.name);
+    result1 = await service.getItem(sword.category, sword.info.name);
 
-    result2 = await service.getItem(friendNote.category, friendNote.name);
+    result2 = await service.getItem(friendNote.category, friendNote.info.name);
 
-    result3 = await service.getItem(firstAidKit.category, firstAidKit.name);
+    result3 = await service.getItem(
+      firstAidKit.category,
+      firstAidKit.info.name,
+    );
 
     expect(result1).toBeNull();
 

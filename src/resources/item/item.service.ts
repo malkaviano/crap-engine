@@ -86,7 +86,9 @@ export class ItemService {
         },
         dto.usability,
         dto.skillName ?? null,
-        dto.consumable,
+        dto.consumable.effectType,
+        dto.consumable.amount,
+        dto.consumable.energy,
       );
     } else if (dto.category === 'READABLE' && dto.readable) {
       item = new ReadableDefinition(
@@ -97,7 +99,8 @@ export class ItemService {
         },
         dto.usability,
         dto.skillName ?? null,
-        dto.readable,
+        dto.readable.title,
+        dto.readable.paragraphs,
       );
     }
 

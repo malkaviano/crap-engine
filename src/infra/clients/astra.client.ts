@@ -6,6 +6,7 @@ import {
   promisifyStargateClient,
   Query,
   Response,
+  ResultSet,
   StargateBearerToken,
   StargateClient,
   Value,
@@ -38,14 +39,19 @@ export class AstraClient {
     this.promisifyStargateClient = promisifyStargateClient(stargateClient);
   }
 
-  public async executeQuery(stmt: string, values?: Values): Promise<Response> {
+  public async executeQuery(
+    stmt: string,
+    values?: Values,
+  ): Promise<ResultSet | undefined> {
     const query = new Query();
 
     query.setValues(values);
 
     query.setCql(stmt);
 
-    return this.promisifyStargateClient.executeQuery(query);
+    const response = await this.promisifyStargateClient.executeQuery(query);
+
+    return response.getResultSet();
   }
 
   public async executeBatch(batch: Batch): Promise<Response> {

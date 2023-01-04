@@ -7,7 +7,7 @@ export class WeaponEntity
   extends WeaponDefinition
   implements IdentifiableInterface
 {
-  private constructor(
+  constructor(
     public readonly id: string,
     info: ItemInfoInterface,
     usability: string,
@@ -17,25 +17,5 @@ export class WeaponEntity
     damage: DamageInterface,
   ) {
     super(info, usability, skillName, dodgeable, energyActivation, damage);
-  }
-
-  public static create(
-    id: string,
-    info: ItemInfoInterface,
-    usability: string,
-    skillName: string,
-    dodgeable: boolean,
-    energyActivation: number,
-    damage: DamageInterface,
-  ): WeaponEntity {
-    return new WeaponEntity(
-      id,
-      info,
-      usability,
-      skillName,
-      dodgeable,
-      energyActivation,
-      damage,
-    );
   }
 }

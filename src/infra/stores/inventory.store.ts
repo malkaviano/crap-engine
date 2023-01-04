@@ -9,6 +9,7 @@ import { IdentifiableInterface } from '@interfaces/identifiable.interface';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { ApplicationError } from '@errors/application.error';
 import { InventorySummaryInterface } from '@interfaces/inventory-summary.interface';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
@@ -115,12 +116,12 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
       const itemIdValue = this.astraClient.newStringValue(itemId);
 
-      const response = await this.astraClient.executeQuery(
+      const result = await this.astraClient.executeQuery(
         this.selectStmt,
         this.astraClient.createValues(interactiveIdValue, itemIdValue),
       );
 
-      const rows = response.getResultSet()?.getRowsList();
+      const rows = result?.getRowsList();
 
       if (rows?.length) {
         const obj = JSON.parse(rows[0].getValuesList()[2].getString());
@@ -128,19 +129,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
         const category = Object.getOwnPropertyDescriptor(obj, 'category');
 
         if (category && category.value === 'WEAPON') {
-          return WeaponEntity.create(
-            obj.id,
-            {
-              name: obj.name,
-              label: obj.label,
-              description: obj.description,
-            },
-            obj.usability,
-            obj.skillName,
-            obj.dodgeable,
-            obj.energyActivation,
-            obj.damage,
-          );
+          return plainToInstance(WeaponEntity, obj);
         }
       }
 
@@ -221,12 +210,12 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     try {
       const interactiveIdValue = this.astraClient.newStringValue(actorId);
 
-      const response = await this.astraClient.executeQuery(
+      const result = await this.astraClient.executeQuery(
         this.summaryStmt,
         this.astraClient.createValues(interactiveIdValue),
       );
 
-      const rows = response.getResultSet()?.getRowsList();
+      const rows = result?.getRowsList();
 
       if (!rows?.length) {
         throw new ApplicationError('Actor does not exist');
@@ -245,19 +234,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
       let equipped: WeaponEntity | null = null;
 
       if (weapon) {
-        equipped = WeaponEntity.create(
-          weapon.id,
-          {
-            name: weapon.name,
-            label: weapon.label,
-            description: weapon.description,
-          },
-          weapon.usability,
-          weapon.skillName,
-          weapon.dodgeable,
-          weapon.energyActivation,
-          weapon.damage,
-        );
+        equipped = plainToInstance(WeaponEntity, weapon);
       }
 
       return {

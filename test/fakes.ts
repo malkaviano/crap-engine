@@ -36,11 +36,9 @@ export const firstAidKit = new ConsumableDefinition(
   },
   'DISPOSABLE',
   'First Aid',
-  {
-    effectType: 'REMEDY',
-    amount: 8,
-    energy: 0,
-  },
+  'REMEDY',
+  8,
+  0,
 );
 
 export const friendNote = new ReadableDefinition(
@@ -51,19 +49,13 @@ export const friendNote = new ReadableDefinition(
   },
   'PERMANENT',
   null,
-  {
-    title: 'LATE!!!',
-    paragraphs: ['GG', 'GG2', 'GG3'],
-  },
+  'LATE!!!',
+  ['GG', 'GG2', 'GG3'],
 );
 
-export const swordEntity = WeaponEntity.create(
+export const swordEntity = new WeaponEntity(
   'sword1',
-  {
-    name: sword.name,
-    label: sword.label,
-    description: sword.description,
-  },
+  sword.info,
   sword.usability,
   sword.skillName,
   sword.dodgeable,
@@ -71,7 +63,7 @@ export const swordEntity = WeaponEntity.create(
   sword.damage,
 );
 
-export const knifeEntity = WeaponEntity.create(
+export const knifeEntity = new WeaponEntity(
   'knife1',
   {
     name: 'huntingKnife',
