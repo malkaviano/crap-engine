@@ -119,15 +119,13 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
       const itemIdValue = this.astraClient.newStringValue(itemId);
 
-      const result = await this.astraClient.executeQuery(
+      const values = await this.astraClient.executeQuery(
         this.selectStmt,
         this.astraClient.createValues(interactiveIdValue, itemIdValue),
       );
 
-      const rows = result?.getRowsList();
-
-      if (rows?.length) {
-        const obj = JSON.parse(rows[0].getValuesList()[2].getString());
+      if (values?.length) {
+        const obj = JSON.parse(values[0][2].getString());
 
         return this.converterHelperService.inflateItemEntity<T>(obj);
       }
@@ -209,25 +207,23 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     try {
       const interactiveIdValue = this.astraClient.newStringValue(actorId);
 
-      const result = await this.astraClient.executeQuery(
+      const values = await this.astraClient.executeQuery(
         this.summaryStmt,
         this.astraClient.createValues(interactiveIdValue),
       );
 
-      const rows = result?.getRowsList();
-
-      if (!rows?.length) {
+      if (!values) {
         throw new ApplicationError('Actor does not exist');
       }
 
-      const values = rows[0].getValuesList();
+      const quantity = values[0][0].getInt();
 
-      const quantity = values[0].getInt();
+      const lootToken = values[0][1].hasString()
+        ? values[0][1].getString()
+        : null;
 
-      const lootToken = values[1].hasString() ? values[1].getString() : null;
-
-      const weapon = values[2].hasString()
-        ? JSON.parse(values[2].getString())
+      const weapon = values[0][2].hasString()
+        ? JSON.parse(values[0][2].getString())
         : null;
 
       let equipped: WeaponEntity | null = null;

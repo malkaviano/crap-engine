@@ -55,17 +55,15 @@ export class ItemCatalogStore
 
       const nameValue = this.astraClient.newStringValue(name);
 
-      const result = await this.astraClient.executeQuery(
+      const values = await this.astraClient.executeQuery(
         this.selectStmt,
         this.astraClient.createValues(categoryValue, nameValue),
       );
 
-      const rows = result?.getRowsList();
-
-      if (rows?.length) {
-        const items = rows
-          .map((r) => {
-            const json = JSON.parse(r.getValuesList()[0].getString());
+      if (values?.length) {
+        const items = values
+          .map((v) => {
+            const json = JSON.parse(v[0].getString());
 
             return this.converterHelperService.inflateItemDefinition<T>(json);
           })

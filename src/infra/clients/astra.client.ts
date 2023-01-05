@@ -42,7 +42,7 @@ export class AstraClient {
   public async executeQuery(
     stmt: string,
     values?: Values,
-  ): Promise<ResultSet | undefined> {
+  ): Promise<Value[][] | undefined> {
     const query = new Query();
 
     query.setValues(values);
@@ -51,7 +51,10 @@ export class AstraClient {
 
     const response = await this.promisifyStargateClient.executeQuery(query);
 
-    return response.getResultSet();
+    return response
+      .getResultSet()
+      ?.getRowsList()
+      .map((r) => r.getValuesList());
   }
 
   public async executeBatch(batch: Batch): Promise<Response> {

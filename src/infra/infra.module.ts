@@ -1,11 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 
 import { AstraClient } from '@root/infra/clients/astra.client';
-import {
-  ITEM_CATALOG_STORE_TOKEN,
-  INVENTORY_STORE_TOKEN,
-  EVENT_STORE_TOKEN,
-} from '@root/tokens';
+import { ITEM_CATALOG_STORE_TOKEN, INVENTORY_STORE_TOKEN } from '@root/tokens';
 import { ItemCatalogStore } from '@infra/stores/catalogs/item-catalog.store';
 import { InventoryStore } from '@root/infra/stores/inventory.store';
 import { AmqpClient } from '@infra/clients/amqp.client';
@@ -18,6 +14,6 @@ import { AmqpClient } from '@infra/clients/amqp.client';
     { provide: INVENTORY_STORE_TOKEN, useClass: InventoryStore },
     AmqpClient,
   ],
-  exports: [ITEM_CATALOG_STORE_TOKEN, INVENTORY_STORE_TOKEN, EVENT_STORE_TOKEN],
+  exports: [ITEM_CATALOG_STORE_TOKEN, INVENTORY_STORE_TOKEN],
 })
 export class InfraModule {}
