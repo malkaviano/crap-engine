@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 
 import * as grpc from '@grpc/grpc-js';
 import {
@@ -7,7 +7,6 @@ import {
   promisifyStargateClient,
   Query,
   Response,
-  ResultSet,
   Row,
   StargateBearerToken,
   StargateClient,
@@ -19,8 +18,10 @@ import { PromisifiedStargateClient } from '@stargate-oss/stargate-grpc-node-clie
 import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
 
 @Injectable()
-export class AstraClient {
+export class AstraClient implements OnModuleDestroy {
   private readonly promisifyStargateClient: PromisifiedStargateClient;
+
+  private readonly stargateClient: StargateClient;
 
   constructor(private readonly configValuesHelper: ConfigValuesHelper) {
     // Astra DB configuration
@@ -35,10 +36,14 @@ export class AstraClient {
     );
 
     // Create the gRPC client
-    const stargateClient = new StargateClient(astra_uri, credentials);
+    this.stargateClient = new StargateClient(astra_uri, credentials);
 
     // Create a promisified version of the client
-    this.promisifyStargateClient = promisifyStargateClient(stargateClient);
+    this.promisifyStargateClient = promisifyStargateClient(this.stargateClient);
+  }
+
+  public onModuleDestroy() {
+    this.stargateClient.close();
   }
 
   public async executeQuery(

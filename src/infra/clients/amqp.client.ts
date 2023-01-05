@@ -1,24 +1,58 @@
 import { Injectable } from '@nestjs/common';
 
-import client, { Channel, Connection } from 'amqplib';
+import { connect, Channel, Connection, ConsumeMessage } from 'amqplib';
 
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
+import { EventMessage } from '@interfaces/event-message.interface';
 
 @Injectable()
 export class AmqpClient {
   private readonly address: string;
 
+  private connection: Connection | null;
+
+  private channel: Channel | null;
+
   constructor(private readonly configValuesHelper: ConfigValuesHelper) {
-    this.address = `${this.configValuesHelper.AMQP_URL}:${this.configValuesHelper.AMQP_PORT}`;
+    this.address = `${this.configValuesHelper.AMQP_URL}`;
+
+    this.connection = null;
+
+    this.channel = null;
   }
 
-  public async channel(queue: string): Promise<client.Channel> {
-    const connection: Connection = await client.connect(this.address);
+  public async produce(queue: string, content: Buffer): Promise<void> {
+    await this.channel?.checkQueue(queue);
 
-    const channel: Channel = await connection.createChannel();
+    this.channel?.sendToQueue(queue, content);
+  }
 
-    await channel.assertQueue(queue);
+  public async consume(
+    queue: string,
+    f: (eventMessage: EventMessage) => void,
+  ): Promise<void> {
+    await this.channel?.checkQueue(queue);
 
-    return channel;
+    await this.channel?.consume(
+      queue,
+      (msg: ConsumeMessage | null) => {
+        if (msg) {
+          const obj = JSON.parse(msg.content.toString());
+
+          f(obj);
+        }
+      },
+      { noAck: true },
+    );
+  }
+
+  public async close(): Promise<void> {
+    await this.connection?.close();
+  }
+
+  public async open(): Promise<void> {
+    this.connection = await connect(this.address);
+
+    this.channel = await this.connection.createChannel();
   }
 }
