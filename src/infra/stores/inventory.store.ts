@@ -124,8 +124,8 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
         this.astraClient.createValues(interactiveIdValue, itemIdValue),
       );
 
-      if (values?.length) {
-        const obj = JSON.parse(values[0][2].getString());
+      if (values.length) {
+        const obj = JSON.parse(values[0][2] as string);
 
         return this.converterHelperService.inflateItemEntity<T>(obj);
       }
@@ -216,15 +216,13 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
         throw new ApplicationError('Actor does not exist');
       }
 
-      const quantity = values[0][0].getInt();
+      const quantity = values[0][0] as number;
 
-      const lootToken = values[0][1].hasString()
-        ? values[0][1].getString()
-        : null;
+      const lootToken: string | null = values[0][1] as string;
 
-      const weapon = values[0][2].hasString()
-        ? JSON.parse(values[0][2].getString())
-        : null;
+      const weapon: { category: string; id: string } | null = JSON.parse(
+        values[0][2] as string,
+      );
 
       let equipped: WeaponEntity | null = null;
 

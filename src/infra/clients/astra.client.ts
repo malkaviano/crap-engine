@@ -3,10 +3,12 @@ import { Injectable } from '@nestjs/common';
 import * as grpc from '@grpc/grpc-js';
 import {
   Batch,
+  ColumnSpec,
   promisifyStargateClient,
   Query,
   Response,
   ResultSet,
+  Row,
   StargateBearerToken,
   StargateClient,
   Value,
@@ -42,7 +44,7 @@ export class AstraClient {
   public async executeQuery(
     stmt: string,
     values?: Values,
-  ): Promise<Value[][] | undefined> {
+  ): Promise<(string | number | boolean | null)[][]> {
     const query = new Query();
 
     query.setValues(values);
@@ -51,10 +53,11 @@ export class AstraClient {
 
     const response = await this.promisifyStargateClient.executeQuery(query);
 
-    return response
-      .getResultSet()
-      ?.getRowsList()
-      .map((r) => r.getValuesList());
+    const cols = response.getResultSet()?.getColumnsList();
+
+    const rows = response.getResultSet()?.getRowsList();
+
+    return this.typeConvert(cols ?? [], rows ?? []);
   }
 
   public async executeBatch(batch: Batch): Promise<Response> {
@@ -115,5 +118,50 @@ export class AstraClient {
     queryValues.setValuesList(values);
 
     return queryValues;
+  }
+
+  private typeConvert(
+    cols: ColumnSpec[],
+    rows: Row[],
+  ): (string | number | boolean | null)[][] {
+    const fBoolean = (v: Value) => (v.hasBoolean() ? v.getBoolean() : null);
+
+    const fString = (v: Value) => (v.hasString() ? v.getString() : null);
+
+    const fNumber = (v: Value) => {
+      let value: number | null = null;
+
+      if (v.hasInt()) {
+        value = v.getInt();
+      } else if (v.hasDouble()) {
+        value = v.getDouble();
+      }
+
+      return value;
+    };
+
+    const tokens: (typeof fBoolean | typeof fString | typeof fNumber)[] = [];
+
+    for (const element of cols) {
+      const type = element.getType()?.getBasic();
+
+      if (type) {
+        if ([4].includes(type)) {
+          tokens.push(fBoolean);
+        } else if ([1, 10, 13].includes(type)) {
+          tokens.push(fString);
+        } else if ([19, 20, 7, 8, 9, 2, 6].includes(type)) {
+          tokens.push(fNumber);
+        }
+      }
+    }
+
+    const r = rows.map((r) => {
+      return r.getValuesList().map((v, i) => {
+        return tokens[i](v);
+      });
+    });
+
+    return r;
   }
 }

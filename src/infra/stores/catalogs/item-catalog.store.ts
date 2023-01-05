@@ -60,16 +60,8 @@ export class ItemCatalogStore
         this.astraClient.createValues(categoryValue, nameValue),
       );
 
-      if (values?.length) {
-        const items = values
-          .map((v) => {
-            const json = JSON.parse(v[0].getString());
-
-            return this.converterHelperService.inflateItemDefinition<T>(json);
-          })
-          .filter((element): element is T => {
-            return element !== null;
-          });
+      if (values.length) {
+        const items = this.allItems<T>(values);
 
         return items[0];
       }
@@ -116,5 +108,19 @@ export class ItemCatalogStore
 
       throw new InfraError(error.message);
     }
+  }
+
+  private allItems<
+    T extends WeaponDefinition | ConsumableDefinition | ReadableDefinition,
+  >(values: (string | number | boolean | null)[][]) {
+    return values
+      .map((v) => {
+        const json = JSON.parse(v[0] as string);
+
+        return this.converterHelperService.inflateItemDefinition<T>(json);
+      })
+      .filter((element): element is T => {
+        return element !== null;
+      });
   }
 }
