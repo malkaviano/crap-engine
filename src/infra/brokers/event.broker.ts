@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 
 import { Observable, Subject } from 'rxjs';
+import { Channel } from 'amqplib';
 
 import { EventBrokerInterface } from '@interfaces/event-broker.interface';
 import { AmqpClient } from '@infra/clients/amqp.client';
@@ -12,6 +13,8 @@ export class EventBroker
   implements OnModuleInit, OnModuleDestroy, EventBrokerInterface
 {
   private readonly eventMessageReceived: Subject<EventMessage>;
+
+  private channel: Channel;
 
   public readonly eventMessageReceived$: Observable<EventMessage>;
 
@@ -25,17 +28,18 @@ export class EventBroker
   }
 
   public async onModuleInit(): Promise<void> {
-    await this.amqpClient.open();
+    this.channel = await this.amqpClient.channel();
 
     await this.consume();
   }
 
   public async onModuleDestroy() {
-    await this.amqpClient.close();
+    await this.channel.close();
   }
 
   public async produce(content: Buffer): Promise<void> {
     await this.amqpClient.produce(
+      this.channel,
       this.configValuesHelper.AMQP_EVENT_QUEUE,
       content,
     );
@@ -43,6 +47,7 @@ export class EventBroker
 
   public async consume(): Promise<void> {
     await this.amqpClient.consume(
+      this.channel,
       this.configValuesHelper.AMQP_EVENT_QUEUE,
       (eventMessage: EventMessage) =>
         this.eventMessageReceived.next(eventMessage),

@@ -9,6 +9,8 @@ import { AmqpClient } from '@infra/clients/amqp.client';
 describe('EventsBroker', () => {
   let service: EventBroker;
 
+  let client: AmqpClient;
+
   const expected = {
     currentSceneId: 'scene1',
     event: 'PICK',
@@ -24,15 +26,17 @@ describe('EventsBroker', () => {
 
     service = module.get(EVENT_BROKER_TOKEN);
 
-    await service.onModuleInit();
+    client = module.get(AmqpClient);
 
-    await service.consume();
+    await service.onModuleInit();
 
     await service.produce(Buffer.from(JSON.stringify(expected)));
   });
 
   afterAll(async () => {
     await service.onModuleDestroy();
+
+    await client.onModuleDestroy();
   });
 
   it('should be defined', () => {
