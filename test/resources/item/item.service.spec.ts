@@ -11,7 +11,7 @@ import { ItemDefinition } from '@definitions/item.definition';
 import {
   mockedCustomLoggerHelper,
   mockedDiceSetHelper,
-  mockedItemStore,
+  mockedItemCatalogStore,
 } from '../../shared-mocks';
 import { firstAidKit, friendNote, sword } from '../../fakes';
 
@@ -24,7 +24,7 @@ describe('ItemService', () => {
         ItemService,
         {
           provide: ITEM_CATALOG_STORE_TOKEN,
-          useValue: instance(mockedItemStore),
+          useValue: instance(mockedItemCatalogStore),
         },
         {
           provide: CustomLoggerHelper,
@@ -57,7 +57,9 @@ describe('ItemService', () => {
   describe('findOne', () => {
     describe('item was not found', () => {
       it('return null', async () => {
-        when(mockedItemStore.getItem('WEAPON', 'xpto')).thenResolve(null);
+        when(mockedItemCatalogStore.getItem('WEAPON', 'xpto')).thenResolve(
+          null,
+        );
 
         const result = await service.findOne('WEAPON', 'xpto');
 
@@ -67,7 +69,9 @@ describe('ItemService', () => {
 
     describe('item was weapon', () => {
       it('return weapon', async () => {
-        when(mockedItemStore.getItem('WEAPON', 'sword')).thenResolve(sword);
+        when(mockedItemCatalogStore.getItem('WEAPON', 'sword')).thenResolve(
+          sword,
+        );
 
         const result = await service.findOne('WEAPON', 'sword');
 
@@ -80,7 +84,7 @@ describe('ItemService', () => {
     it('should call store remove', async () => {
       await service.remove('WEAPON', 'xpto');
 
-      verify(mockedItemStore.removeItem('WEAPON', 'xpto')).once();
+      verify(mockedItemCatalogStore.removeItem('WEAPON', 'xpto')).once();
     });
   });
 
@@ -164,7 +168,9 @@ describe('ItemService', () => {
           await service.save(item);
 
           verify(
-            mockedItemStore.upsertItem(deepEqual(expected as ItemDefinition)),
+            mockedItemCatalogStore.upsertItem(
+              deepEqual(expected as ItemDefinition),
+            ),
           ).once();
         });
       });

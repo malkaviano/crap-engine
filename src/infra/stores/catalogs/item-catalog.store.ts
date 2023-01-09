@@ -6,7 +6,7 @@ import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { ItemDefinition } from '@definitions/item.definition';
 import { InfraError } from '@errors/infra.error';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
-import { ConverterHelperService } from '@helpers/converter.helper.service';
+import { ConverterHelper } from '@helpers/converter.helper.service';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ReadableDefinition } from '@definitions/readable.definition';
@@ -27,7 +27,7 @@ export class ItemCatalogStore
     private readonly astraClient: AstraClient,
     private readonly configValuesHelper: ConfigValuesHelper,
     private readonly logger: CustomLoggerHelper,
-    private readonly converterHelperService: ConverterHelperService,
+    private readonly converterHelperService: ConverterHelper,
   ) {
     this.fields = ['category', 'name', 'payload'].join(',');
 

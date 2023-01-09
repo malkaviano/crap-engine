@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { ConverterHelper } from '@helpers/converter.helper.service';
+import { GeneratorHelper as GeneratorHelper } from '@helpers/generator.helper.service';
 
-describe('ConverterHelperService', () => {
-  let service: ConverterHelper;
+describe('GeneratorHelper', () => {
+  let service: GeneratorHelper;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ConverterHelper],
+      providers: [GeneratorHelper],
     }).compile();
 
-    service = module.get<ConverterHelper>(ConverterHelper);
+    service = module.get<GeneratorHelper>(GeneratorHelper);
   });
 
   it('should be defined', () => {

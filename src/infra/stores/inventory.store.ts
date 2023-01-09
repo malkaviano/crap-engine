@@ -9,7 +9,7 @@ import { IdentifiableInterface } from '@interfaces/identifiable.interface';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { ApplicationError } from '@errors/application.error';
 import { InventorySummaryInterface } from '@interfaces/inventory-summary.interface';
-import { ConverterHelperService } from '@helpers/converter.helper.service';
+import { ConverterHelper } from '@helpers/converter.helper.service';
 import { ConsumableEntity } from '@entities/consumable.entity';
 import { ReadableEntity } from '@entities/readable.entity';
 
@@ -37,7 +37,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     private readonly astraClient: AstraClient,
     private readonly configValuesHelper: ConfigValuesHelper,
     private readonly logger: CustomLoggerHelper,
-    private readonly converterHelperService: ConverterHelperService,
+    private readonly converterHelperService: ConverterHelper,
   ) {
     this.fields = ['interactive_id', 'item_id', 'item_payload'].join(',');
 
@@ -79,7 +79,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     await this.astraClient.executeQuery(
       `CREATE TABLE IF NOT EXISTS ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
         '(interactive_id text,item_id text,item_payload text,' +
-        'loot_token text static,equipped text static,' +
+        'unlocked boolean static,equipped text static,' +
         'PRIMARY KEY (interactive_id, item_id));',
     );
   }

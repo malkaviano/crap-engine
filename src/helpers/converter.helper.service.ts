@@ -10,7 +10,7 @@ import { ConsumableEntity } from '@entities/consumable.entity';
 import { ReadableEntity } from '@entities/readable.entity';
 
 @Injectable()
-export class ConverterHelperService {
+export class ConverterHelper {
   public inflateItemDefinition<
     T extends WeaponDefinition | ConsumableDefinition | ReadableDefinition,
   >(obj: { readonly category: string }): T | null {

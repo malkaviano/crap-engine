@@ -2,6 +2,8 @@ import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ReadableDefinition } from '@definitions/readable.definition';
 import { WeaponEntity } from '@entities/weapon.entity';
+import { ConsumableEntity } from '@entities/consumable.entity';
+import { ReadableEntity } from '@entities/readable.entity';
 
 export const sword = new WeaponDefinition(
   {
@@ -87,4 +89,23 @@ export const knifeEntity = new WeaponEntity(
     fixed: 1,
     effectType: 'KINETIC',
   },
+);
+
+export const firstAidKitEntity = new ConsumableEntity(
+  'firstAidKit1',
+  firstAidKit.info,
+  firstAidKit.usability,
+  firstAidKit.skillName,
+  firstAidKit.effectType,
+  firstAidKit.amount,
+  firstAidKit.energy,
+);
+
+export const friendNoteEntity = new ReadableEntity(
+  'note1',
+  friendNote.info,
+  friendNote.usability,
+  friendNote.skillName,
+  friendNote.title,
+  friendNote.paragraphs,
 );

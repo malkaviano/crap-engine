@@ -5,7 +5,8 @@ import { DateTimeHelper } from '@root/helpers/date-time.helper.service';
 import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
 import { HasherHelper } from '@root/helpers/hasher.helper.service';
 import { DiceSetHelper } from '@root/helpers/dice-set.helper.service';
-import { ConverterHelperService } from './converter.helper.service';
+import { ConverterHelper } from './converter.helper.service';
+import { GeneratorHelper } from './generator.helper.service';
 
 @Global()
 @Module({
@@ -15,7 +16,8 @@ import { ConverterHelperService } from './converter.helper.service';
     ConfigValuesHelper,
     HasherHelper,
     DiceSetHelper,
-    ConverterHelperService,
+    ConverterHelper,
+    GeneratorHelper,
   ],
   exports: [
     DateTimeHelper,
@@ -23,7 +25,8 @@ import { ConverterHelperService } from './converter.helper.service';
     ConfigValuesHelper,
     HasherHelper,
     DiceSetHelper,
-    ConverterHelperService,
+    ConverterHelper,
+    GeneratorHelper,
   ],
 })
 export class HelpersModule {}
