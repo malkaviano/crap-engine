@@ -147,24 +147,4 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
       throw new InfraError(error.message);
     }
   }
-
-  public async loot(
-    looterId: string,
-    interactiveId: string,
-    itemId: string,
-  ): Promise<boolean> {
-    const itemEntity = await this.look(interactiveId, itemId);
-
-    if (itemEntity) {
-      const dropped = await this.drop(interactiveId, itemId);
-
-      if (dropped) {
-        const r = await this.store(looterId, itemEntity);
-
-        return r;
-      }
-    }
-
-    return false;
-  }
 }

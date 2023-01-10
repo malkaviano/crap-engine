@@ -5,7 +5,7 @@ import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
 import { INVENTORY_STORE_TOKEN } from '@root/tokens';
 
-import { knifeEntity, sword, swordEntity } from '../fakes';
+import { knifeEntity, swordEntity } from '../fakes';
 
 describe('InventoryStore', () => {
   let service: InventoryStore;
@@ -49,19 +49,7 @@ describe('InventoryStore', () => {
 
     expect(item).toEqual(knifeEntity);
 
-    op = await service.loot('actor2', 'actor1', swordEntity.id);
-
-    expect(op).toEqual(true);
-
-    op = await service.loot('actor3', 'actor1', swordEntity.id);
-
-    expect(op).toEqual(false);
-
     item = await service.look('actor2', swordEntity.id);
-
-    expect(item).toEqual(swordEntity);
-
-    item = await service.look('actor1', swordEntity.id);
 
     expect(item).toBeNull();
 

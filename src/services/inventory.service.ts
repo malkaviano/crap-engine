@@ -22,7 +22,7 @@ export class InventoryService {
     private readonly generatorHelper: GeneratorHelper,
   ) {}
 
-  public async spawnItem(
+  public async spawn(
     interactiveId: string,
     itemCategory: string,
     itemName: string,
@@ -75,5 +75,31 @@ export class InventoryService {
     await this.inventoryStore.store(interactiveId, entity);
 
     return id;
+  }
+
+  public async dispose(actorId: string, itemId: string): Promise<boolean> {
+    return this.inventoryStore.drop(actorId, itemId);
+  }
+
+  public async loot(
+    looterId: string,
+    containerId: string,
+    itemId: string,
+  ): Promise<boolean> {
+    const item = await this.inventoryStore.look(containerId, itemId);
+
+    if (item) {
+      const result = await this.inventoryStore.drop(containerId, itemId);
+
+      if (result) {
+        return this.inventoryStore.store(looterId, item);
+      }
+    }
+
+    return false;
+  }
+
+  public async erase(actorId: string): Promise<void> {
+    await this.inventoryStore.remove(actorId);
   }
 }
