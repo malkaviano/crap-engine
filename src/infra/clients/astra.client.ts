@@ -3,6 +3,8 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import * as grpc from '@grpc/grpc-js';
 import {
   Batch,
+  BatchParameters,
+  BatchQuery,
   ColumnSpec,
   promisifyStargateClient,
   Query,
@@ -65,8 +67,20 @@ export class AstraClient implements OnModuleDestroy {
     return this.typeConvert(cols ?? [], rows ?? []);
   }
 
-  public async executeBatch(batch: Batch): Promise<Response> {
-    return this.promisifyStargateClient.executeBatch(batch);
+  public async executeBatch(
+    queries: BatchQuery[],
+  ): Promise<(string | number | boolean | null)[][]> {
+    const batch = new Batch();
+
+    batch.setQueriesList(queries);
+
+    const response = await this.promisifyStargateClient.executeBatch(batch);
+
+    const cols = response.getResultSet()?.getColumnsList();
+
+    const rows = response.getResultSet()?.getRowsList();
+
+    return this.typeConvert(cols ?? [], rows ?? []);
   }
 
   public newObjectValue(value: unknown): Value {
@@ -123,6 +137,16 @@ export class AstraClient implements OnModuleDestroy {
     queryValues.setValuesList(values);
 
     return queryValues;
+  }
+
+  public createBatchQuery(stmt: string, values?: Values): BatchQuery {
+    const batchQuery = new BatchQuery();
+
+    batchQuery.setCql(stmt);
+
+    batchQuery.setValues(values);
+
+    return batchQuery;
   }
 
   private typeConvert(

@@ -5,7 +5,7 @@ import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
 import { INVENTORY_STORE_TOKEN } from '@root/tokens';
 
-import { knifeEntity, swordEntity } from '../fakes';
+import { knifeEntity, sword, swordEntity } from '../fakes';
 
 describe('InventoryStore', () => {
   let service: InventoryStore;
@@ -24,33 +24,53 @@ describe('InventoryStore', () => {
     expect(service).toBeDefined();
   });
 
-  it('should execute all inventory actions', async () => {
+  it('should execute inventory actions', async () => {
     await service.remove('actor1');
 
-    await service.store('actor1', swordEntity);
+    await service.remove('actor2');
 
-    let result = await service.look('actor1', swordEntity.id);
+    let op = await service.drop('actor1', knifeEntity.id);
 
-    expect(result).toEqual(swordEntity);
+    expect(op).toEqual(false);
 
-    await service.store('actor1', knifeEntity);
+    op = await service.store('actor1', swordEntity);
 
-    result = await service.look('actor1', knifeEntity.id);
+    expect(op).toEqual(true);
 
-    expect(result).toEqual(knifeEntity);
+    let item = await service.look('actor1', swordEntity.id);
 
-    result = await service.look('actor1', swordEntity.id);
+    expect(item).toEqual(swordEntity);
 
-    expect(result).toEqual(swordEntity);
+    op = await service.store('actor1', knifeEntity);
 
-    result = await service.look('actor1', knifeEntity.id);
+    expect(op).toEqual(true);
 
-    expect(result).toEqual(knifeEntity);
+    item = await service.look('actor1', knifeEntity.id);
 
-    await service.drop('actor1', swordEntity.id);
+    expect(item).toEqual(knifeEntity);
 
-    result = await service.look('actor1', swordEntity.id);
+    op = await service.loot('actor2', 'actor1', swordEntity.id);
 
-    expect(result).toBeNull();
+    expect(op).toEqual(true);
+
+    op = await service.loot('actor3', 'actor1', swordEntity.id);
+
+    expect(op).toEqual(false);
+
+    item = await service.look('actor2', swordEntity.id);
+
+    expect(item).toEqual(swordEntity);
+
+    item = await service.look('actor1', swordEntity.id);
+
+    expect(item).toBeNull();
+
+    op = await service.drop('actor1', knifeEntity.id);
+
+    expect(op).toEqual(true);
+
+    item = await service.look('actor1', knifeEntity.id);
+
+    expect(item).toBeNull();
   });
 });
