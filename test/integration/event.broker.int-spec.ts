@@ -28,14 +28,12 @@ describe('EventsBroker', () => {
 
     client = module.get(AmqpClient);
 
-    await service.onModuleInit();
-
     await service.produce(Buffer.from(JSON.stringify(expected)));
+
+    await service.consume();
   });
 
   afterAll(async () => {
-    await service.onModuleDestroy();
-
     await client.onModuleDestroy();
   });
 
@@ -46,6 +44,7 @@ describe('EventsBroker', () => {
   it('should consume event messages', (done) => {
     service.eventMessageReceived$.subscribe((event) => {
       done();
+
       expect(event).toEqual(expected);
     });
   });

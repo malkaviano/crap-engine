@@ -4,14 +4,24 @@ import { connect, Channel, Connection, ConsumeMessage } from 'amqplib';
 
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 
+interface Channels {
+  [key: string]: Channel;
+}
+
 @Injectable()
 export class AmqpClient implements OnModuleDestroy {
   private readonly address: string;
 
-  private connection: Connection;
+  private readonly channels: Channels;
+
+  private connection: Connection | null;
 
   constructor(private readonly configValuesHelper: ConfigValuesHelper) {
     this.address = `${this.configValuesHelper.AMQP_URL}`;
+
+    this.channels = {};
+
+    this.connection = null;
   }
 
   public async onModuleDestroy(): Promise<void> {
@@ -19,20 +29,24 @@ export class AmqpClient implements OnModuleDestroy {
   }
 
   public async produce(
-    channel: Channel,
+    channelName: string,
     queue: string,
     content: Buffer,
   ): Promise<boolean> {
+    const channel = await this.channel(channelName);
+
     await channel.assertQueue(queue);
 
     return channel.sendToQueue(queue, content);
   }
 
   public async consume<T>(
-    channel: Channel,
+    channelName: string,
     queue: string,
     f: (eventMessage: T) => void,
   ): Promise<string> {
+    const channel = await this.channel(channelName);
+
     await channel.assertQueue(queue);
 
     const { consumerTag } = await channel.consume(
@@ -51,11 +65,17 @@ export class AmqpClient implements OnModuleDestroy {
     return consumerTag;
   }
 
-  public async channel(): Promise<Channel> {
+  private async channel(name: string): Promise<Channel> {
     if (!this.connection) {
       this.connection = await connect(this.address);
     }
 
-    return this.connection.createChannel();
+    if (!this.channels[name]) {
+      const channel = await this.connection.createChannel();
+
+      this.channels[name] = channel;
+    }
+
+    return this.channels[name];
   }
 }

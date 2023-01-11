@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { INVENTORY_STORE_TOKEN, ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
-import { InventoryStoreInterface } from '@interfaces/inventory-store.interface';
+import { InventoryStoreInterface } from '@interfaces/stores/inventory-store.interface';
 import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
 import { GeneratorHelper } from '@helpers/generator.helper.service';
 import { WeaponEntity } from '@entities/weapon.entity';

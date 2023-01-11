@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
-import { InventoryStoreInterface } from '@interfaces/inventory-store.interface';
+import { InventoryStoreInterface } from '@interfaces/stores/inventory-store.interface';
 import { AstraClient } from '@root/infra/clients/astra.client';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';

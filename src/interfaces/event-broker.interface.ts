@@ -1,4 +1,4 @@
 export interface EventBrokerInterface {
-  consume(): Promise<void>;
+  consume(): Promise<string>;
   produce(content: Buffer): Promise<void>;
 }
