@@ -3,12 +3,10 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import * as grpc from '@grpc/grpc-js';
 import {
   Batch,
-  BatchParameters,
   BatchQuery,
   ColumnSpec,
   promisifyStargateClient,
   Query,
-  Response,
   Row,
   StargateBearerToken,
   StargateClient,
@@ -18,6 +16,8 @@ import {
 import { PromisifiedStargateClient } from '@stargate-oss/stargate-grpc-node-client/lib/util/promise';
 
 import { ConfigValuesHelper } from '@root/helpers/config-values.helper.service';
+
+type QueryResult = string | number | boolean | null;
 
 @Injectable()
 export class AstraClient implements OnModuleDestroy {
@@ -48,10 +48,27 @@ export class AstraClient implements OnModuleDestroy {
     this.stargateClient.close();
   }
 
-  public async executeQuery(
+  public async executeStmt(
+    stmt: string,
+    params: string[][],
+  ): Promise<QueryResult[][]> {
+    const values = params.map((pair) => {
+      if (pair[1] === 'string') {
+        return this.newStringValue(pair[0]);
+      } else if (pair[1] === 'integer') {
+        return this.newIntValue(parseInt(pair[0]));
+      } else {
+        return this.newBooleanValue(pair[0] === 'true');
+      }
+    });
+
+    return this.executeQuery(stmt, this.createValues(values));
+  }
+
+  private async executeQuery(
     stmt: string,
     values?: Values,
-  ): Promise<(string | number | boolean | null)[][]> {
+  ): Promise<QueryResult[][]> {
     const query = new Query();
 
     query.setValues(values);
@@ -67,7 +84,7 @@ export class AstraClient implements OnModuleDestroy {
     return this.typeConvert(cols ?? [], rows ?? []);
   }
 
-  public async executeBatch(
+  private async executeBatch(
     queries: BatchQuery[],
   ): Promise<(string | number | boolean | null)[][]> {
     const batch = new Batch();
@@ -83,19 +100,7 @@ export class AstraClient implements OnModuleDestroy {
     return this.typeConvert(cols ?? [], rows ?? []);
   }
 
-  public newObjectValue(value: unknown): Value {
-    const intValue = new Value();
-
-    if (value) {
-      intValue.setString(JSON.stringify(value));
-    } else {
-      intValue.setNull(new Value.Null());
-    }
-
-    return intValue;
-  }
-
-  public newIntValue(value: number): Value {
+  private newIntValue(value: number): Value {
     const intValue = new Value();
 
     if (value) {
@@ -107,7 +112,7 @@ export class AstraClient implements OnModuleDestroy {
     return intValue;
   }
 
-  public newBooleanValue(value: boolean): Value {
+  private newBooleanValue(value: boolean): Value {
     const boolValue = new Value();
 
     if (value) {
@@ -119,7 +124,7 @@ export class AstraClient implements OnModuleDestroy {
     return boolValue;
   }
 
-  public newStringValue(value: string | null): Value {
+  private newStringValue(value: string | null): Value {
     const strValue = new Value();
 
     if (value) {
@@ -131,7 +136,7 @@ export class AstraClient implements OnModuleDestroy {
     return strValue;
   }
 
-  public createValues(...values: Value[]): Values {
+  private createValues(values: Value[]): Values {
     const queryValues = new Values();
 
     queryValues.setValuesList(values);
@@ -139,7 +144,7 @@ export class AstraClient implements OnModuleDestroy {
     return queryValues;
   }
 
-  public createBatchQuery(stmt: string, values?: Values): BatchQuery {
+  private createBatchQuery(stmt: string, values?: Values): BatchQuery {
     const batchQuery = new BatchQuery();
 
     batchQuery.setCql(stmt);

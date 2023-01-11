@@ -15,8 +15,6 @@ import { ReadableDefinition } from '@definitions/readable.definition';
 export class ItemCatalogStore
   implements OnModuleInit, ItemCatalogStoreInterface
 {
-  private readonly fields: string;
-
   private readonly insertStmt: string;
 
   private readonly selectStmt: string;
@@ -29,21 +27,29 @@ export class ItemCatalogStore
     private readonly logger: CustomLoggerHelper,
     private readonly converterHelperService: ConverterHelper,
   ) {
-    this.fields = ['category', 'name', 'payload'].join(',');
+    const fields = ['category', 'name', 'payload'].join(',');
+
+    const predicate = 'category = ? and name = ?';
 
     this.insertStmt =
-      `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items_catalog ` +
-      `(${this.fields}) values(?,?,?);`;
+      `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.item_catalog ` +
+      `(${fields}) values(?,?,?);`;
 
-    this.selectStmt = `select payload from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items_catalog where category = ? and name = ?;`;
+    this.selectStmt =
+      'select payload ' +
+      `from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.item_catalog ` +
+      `where ${predicate};`;
 
-    this.deleteStmt = `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items_catalog where category = ? and name = ?;`;
+    this.deleteStmt =
+      `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.item_catalog ` +
+      `where ${predicate};`;
   }
 
   public async onModuleInit(): Promise<void> {
-    await this.astraClient.executeQuery(
-      `CREATE TABLE IF NOT EXISTS ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.items_catalog ` +
+    await this.astraClient.executeStmt(
+      `CREATE TABLE IF NOT EXISTS ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.item_catalog ` +
         '(name text,category text,payload text, PRIMARY KEY (category, name));',
+      [],
     );
   }
 
@@ -51,14 +57,10 @@ export class ItemCatalogStore
     T extends WeaponDefinition | ConsumableDefinition | ReadableDefinition,
   >(category: string, name: string): Promise<T | null> {
     try {
-      const categoryValue = this.astraClient.newStringValue(category);
-
-      const nameValue = this.astraClient.newStringValue(name);
-
-      const values = await this.astraClient.executeQuery(
-        this.selectStmt,
-        this.astraClient.createValues(categoryValue, nameValue),
-      );
+      const values = await this.astraClient.executeStmt(this.selectStmt, [
+        [category, 'string'],
+        [name, 'string'],
+      ]);
 
       if (values.length) {
         const items = this.allItems<T>(values);
@@ -76,16 +78,11 @@ export class ItemCatalogStore
 
   public async upsertItem(item: ItemDefinition): Promise<void> {
     try {
-      const nameValue = this.astraClient.newStringValue(item.info.name);
-
-      const categoryValue = this.astraClient.newStringValue(item.category);
-
-      const payload = this.astraClient.newObjectValue(item);
-
-      await this.astraClient.executeQuery(
-        this.insertStmt,
-        this.astraClient.createValues(categoryValue, nameValue, payload),
-      );
+      await this.astraClient.executeStmt(this.insertStmt, [
+        [item.category, 'string'],
+        [item.info.name, 'string'],
+        [JSON.stringify(item), 'string'],
+      ]);
     } catch (error) {
       this.logger.error(error.message, error);
 
@@ -95,14 +92,10 @@ export class ItemCatalogStore
 
   public async removeItem(category: string, name: string): Promise<void> {
     try {
-      const categoryValue = this.astraClient.newStringValue(category);
-
-      const nameValue = this.astraClient.newStringValue(name);
-
-      await this.astraClient.executeQuery(
-        this.deleteStmt,
-        this.astraClient.createValues(categoryValue, nameValue),
-      );
+      await this.astraClient.executeStmt(this.deleteStmt, [
+        [category, 'string'],
+        [name, 'string'],
+      ]);
     } catch (error) {
       this.logger.error(error.message, error);
 

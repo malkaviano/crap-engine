@@ -19,7 +19,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
   private readonly deleteStmt: string;
 
-  private readonly uninstallStmt: string;
+  private readonly removeStmt: string;
 
   constructor(
     private readonly astraClient: AstraClient,
@@ -29,32 +29,35 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
   ) {
     const fields = ['interactive_id', 'item_id', 'item_payload'].join(',');
 
+    const predicate = 'interactive_id = ? and item_id = ?';
+
     this.insertStmt =
       `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
       `(${fields}) values(?,?,?) IF NOT EXISTS;`;
 
     this.selectStmt =
       `select ${fields} ` +
-      ` from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
-      ' where interactive_id = ? and item_id = ?;';
+      `from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
+      `where ${predicate};`;
 
     this.deleteStmt =
       `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
-      'where interactive_id = ? and item_id = ? IF EXISTS;';
+      `where ${predicate} IF EXISTS;`;
 
-    this.uninstallStmt =
+    this.removeStmt =
       `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
-      'where interactive_id = ?;';
+      `where interactive_id = ?;`;
   }
 
   public async onModuleInit(): Promise<void> {
-    await this.astraClient.executeQuery(
+    await this.astraClient.executeStmt(
       'CREATE TABLE IF NOT EXISTS ' +
         ` ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.inventory ` +
         '(interactive_id text,' +
         'item_id text,' +
         'item_payload text,' +
         'PRIMARY KEY (interactive_id, item_id));',
+      [],
     );
   }
 
@@ -63,20 +66,11 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     itemEntity: IdentifiableInterface,
   ): Promise<boolean> {
     try {
-      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
-
-      const itemIdValue = this.astraClient.newStringValue(itemEntity.id);
-
-      const weaponValue = this.astraClient.newObjectValue(itemEntity);
-
-      const r = await this.astraClient.executeQuery(
-        this.insertStmt,
-        this.astraClient.createValues(
-          interactiveIdValue,
-          itemIdValue,
-          weaponValue,
-        ),
-      );
+      const r = await this.astraClient.executeStmt(this.insertStmt, [
+        [interactiveId, 'string'],
+        [itemEntity.id, 'string'],
+        [JSON.stringify(itemEntity), 'string'],
+      ]);
 
       return !!r[0][0];
     } catch (error) {
@@ -91,14 +85,10 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     itemId: string,
   ): Promise<T | null> {
     try {
-      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
-
-      const itemIdValue = this.astraClient.newStringValue(itemId);
-
-      const values = await this.astraClient.executeQuery(
-        this.selectStmt,
-        this.astraClient.createValues(interactiveIdValue, itemIdValue),
-      );
+      const values = await this.astraClient.executeStmt(this.selectStmt, [
+        [interactiveId, 'string'],
+        [itemId, 'string'],
+      ]);
 
       if (values.length) {
         const obj = JSON.parse(values[0][2] as string);
@@ -116,14 +106,10 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
   public async drop(interactiveId: string, itemId: string): Promise<boolean> {
     try {
-      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
-
-      const itemIdValue = this.astraClient.newStringValue(itemId);
-
-      const r = await this.astraClient.executeQuery(
-        this.deleteStmt,
-        this.astraClient.createValues(interactiveIdValue, itemIdValue),
-      );
+      const r = await this.astraClient.executeStmt(this.deleteStmt, [
+        [interactiveId, 'string'],
+        [itemId, 'string'],
+      ]);
 
       return !!r[0][0];
     } catch (error) {
@@ -135,12 +121,9 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
   public async remove(interactiveId: string): Promise<void> {
     try {
-      const interactiveIdValue = this.astraClient.newStringValue(interactiveId);
-
-      await this.astraClient.executeQuery(
-        this.uninstallStmt,
-        this.astraClient.createValues(interactiveIdValue),
-      );
+      await this.astraClient.executeStmt(this.removeStmt, [
+        [interactiveId, 'string'],
+      ]);
     } catch (error) {
       this.logger.error(error.message, error);
 
