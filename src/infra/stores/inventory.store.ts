@@ -5,11 +5,12 @@ import { AstraClient } from '@root/infra/clients/astra.client';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { InfraError } from '@errors/infra.error';
-import { ItemEntityInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { ConverterHelper } from '@helpers/converter.helper.service';
 import { ConsumableEntity } from '@entities/consumable.entity';
 import { ReadableEntity } from '@entities/readable.entity';
+import { ErrorCodes } from '@errors/error-code';
 
 @Injectable()
 export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
@@ -76,7 +77,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     } catch (error) {
       this.logger.error(error.message, error);
 
-      throw new InfraError(error.message);
+      throw new InfraError(ErrorCodes.STORE_ERROR);
     }
   }
 
@@ -100,7 +101,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     } catch (error) {
       this.logger.error(error.message, error);
 
-      throw new InfraError(error.message);
+      throw new InfraError(ErrorCodes.STORE_ERROR);
     }
   }
 
@@ -115,7 +116,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     } catch (error) {
       this.logger.error(error.message, error);
 
-      throw new InfraError(error.message);
+      throw new InfraError(ErrorCodes.STORE_ERROR);
     }
   }
 
@@ -127,7 +128,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     } catch (error) {
       this.logger.error(error.message, error);
 
-      throw new InfraError(error.message);
+      throw new InfraError(ErrorCodes.STORE_ERROR);
     }
   }
 }

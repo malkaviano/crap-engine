@@ -1,7 +1,7 @@
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { DamageInterface } from '@interfaces/damage.interface';
 import { ItemInfoInterface } from '@interfaces/item-info.interface';
-import { ItemEntityInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 
 export class WeaponEntity
   extends WeaponDefinition

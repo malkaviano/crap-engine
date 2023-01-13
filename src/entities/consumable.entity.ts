@@ -1,5 +1,5 @@
 import { ConsumableDefinition } from '@definitions/consumable.definition';
-import { ItemEntityInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { ItemInfoInterface } from '@interfaces/item-info.interface';
 
 export class ConsumableEntity

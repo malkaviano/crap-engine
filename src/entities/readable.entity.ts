@@ -1,4 +1,4 @@
-import { ItemEntityInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { ItemInfoInterface } from '@interfaces/item-info.interface';
 import { ReadableDefinition } from '@definitions/readable.definition';
 
