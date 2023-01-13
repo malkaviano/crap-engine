@@ -1,11 +1,11 @@
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { DamageInterface } from '@interfaces/damage.interface';
 import { ItemInfoInterface } from '@interfaces/item-info.interface';
-import { IdentifiableInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/identifiable.interface';
 
 export class WeaponEntity
   extends WeaponDefinition
-  implements IdentifiableInterface
+  implements ItemEntityInterface
 {
   constructor(
     public readonly id: string,

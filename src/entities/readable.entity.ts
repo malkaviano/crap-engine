@@ -1,10 +1,10 @@
-import { IdentifiableInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/identifiable.interface';
 import { ItemInfoInterface } from '@interfaces/item-info.interface';
 import { ReadableDefinition } from '@definitions/readable.definition';
 
 export class ReadableEntity
   extends ReadableDefinition
-  implements IdentifiableInterface
+  implements ItemEntityInterface
 {
   constructor(
     public readonly id: string,

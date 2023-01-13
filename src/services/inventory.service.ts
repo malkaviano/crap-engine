@@ -6,11 +6,11 @@ import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store
 import { GeneratorHelper } from '@helpers/generator.helper.service';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { WeaponDefinition } from '@definitions/weapon.definition';
-import { IdentifiableInterface } from '@interfaces/identifiable.interface';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ConsumableEntity } from '@entities/consumable.entity';
 import { ReadableDefinition } from '@definitions/readable.definition';
 import { ReadableEntity } from '@entities/readable.entity';
+import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 
 @Injectable()
 export class InventoryService {
@@ -35,7 +35,7 @@ export class InventoryService {
 
     const id = this.generatorHelper.newId();
 
-    let entity: IdentifiableInterface | null = null;
+    let entity: ItemEntityInterface | null = null;
 
     if (item instanceof WeaponDefinition) {
       entity = new WeaponEntity(

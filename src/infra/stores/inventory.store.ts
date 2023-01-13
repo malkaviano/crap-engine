@@ -5,7 +5,7 @@ import { AstraClient } from '@root/infra/clients/astra.client';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { InfraError } from '@errors/infra.error';
-import { IdentifiableInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/identifiable.interface';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { ConverterHelper } from '@helpers/converter.helper.service';
 import { ConsumableEntity } from '@entities/consumable.entity';
@@ -63,7 +63,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
 
   public async store(
     interactiveId: string,
-    itemEntity: IdentifiableInterface,
+    itemEntity: ItemEntityInterface,
   ): Promise<boolean> {
     try {
       const r = await this.astraClient.executeStmt(this.insertStmt, [

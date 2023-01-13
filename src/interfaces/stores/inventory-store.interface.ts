@@ -1,14 +1,14 @@
-import { IdentifiableInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/identifiable.interface';
 
 export interface InventoryStoreInterface {
   store(
     interactiveId: string,
-    itemEntity: IdentifiableInterface,
+    itemEntity: ItemEntityInterface,
   ): Promise<boolean>;
   look(
     interactiveId: string,
     itemId: string,
-  ): Promise<IdentifiableInterface | null>;
+  ): Promise<ItemEntityInterface | null>;
   drop(interactiveId: string, itemId: string): Promise<boolean>;
   remove(interactiveId: string): Promise<void>;
 }
