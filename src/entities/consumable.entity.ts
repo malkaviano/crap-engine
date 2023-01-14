@@ -1,10 +1,10 @@
 import { ConsumableDefinition } from '@definitions/consumable.definition';
-import { IdentifiableInterface } from '@interfaces/identifiable.interface';
+import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { ItemInfoInterface } from '@interfaces/item-info.interface';
 
 export class ConsumableEntity
   extends ConsumableDefinition
-  implements IdentifiableInterface
+  implements ItemEntityInterface
 {
   constructor(
     public readonly id: string,

@@ -37,6 +37,9 @@
       ],
       "@messages/*": [
         "src/messages/*"
+      ],
+      "@rules/*": [
+        "src/rules/*"
       ]
     }
   }

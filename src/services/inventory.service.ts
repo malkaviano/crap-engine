@@ -6,11 +6,13 @@ import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store
 import { GeneratorHelper } from '@helpers/generator.helper.service';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { WeaponDefinition } from '@definitions/weapon.definition';
-import { IdentifiableInterface } from '@interfaces/identifiable.interface';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ConsumableEntity } from '@entities/consumable.entity';
 import { ReadableDefinition } from '@definitions/readable.definition';
 import { ReadableEntity } from '@entities/readable.entity';
+import { ItemEntityInterface } from '@interfaces/item-entity.interface';
+import { ApplicationError } from '@errors/application.error';
+import { ErrorCodes } from '@errors/error-code';
 
 @Injectable()
 export class InventoryService {
@@ -22,6 +24,43 @@ export class InventoryService {
     private readonly generatorHelper: GeneratorHelper,
   ) {}
 
+  public async look<T extends WeaponEntity | ConsumableEntity | ReadableEntity>(
+    interactiveId: string,
+    itemId: string,
+  ): Promise<T | null> {
+    return this.inventoryStore.look<T>(interactiveId, itemId);
+  }
+
+  public async dispose(actorId: string, itemId: string): Promise<boolean> {
+    return this.inventoryStore.drop(actorId, itemId);
+  }
+
+  public async loot(
+    looterId: string,
+    containerId: string,
+    itemId: string,
+  ): Promise<string> {
+    const item = await this.inventoryStore.look(containerId, itemId);
+
+    if (!item) {
+      throw new ApplicationError(ErrorCodes.ITEM_NOT_FOUND);
+    }
+
+    let result = await this.inventoryStore.drop(containerId, itemId);
+
+    if (!result) {
+      throw new ApplicationError(ErrorCodes.LOOTED_BY_OTHER);
+    }
+
+    result = await this.inventoryStore.store(looterId, item);
+
+    if (!result) {
+      throw new ApplicationError(ErrorCodes.DUPLICATED_ITEM);
+    }
+
+    return item.id;
+  }
+
   public async spawn(
     interactiveId: string,
     itemCategory: string,
@@ -30,12 +69,12 @@ export class InventoryService {
     const item = await this.itemCatalogStore.getItem(itemCategory, itemName);
 
     if (!item) {
-      throw new Error('Item not found');
+      throw new ApplicationError(ErrorCodes.ITEM_NOT_FOUND);
     }
 
     const id = this.generatorHelper.newId();
 
-    let entity: IdentifiableInterface | null = null;
+    let entity: ItemEntityInterface | null = null;
 
     if (item instanceof WeaponDefinition) {
       entity = new WeaponEntity(
@@ -69,37 +108,19 @@ export class InventoryService {
     }
 
     if (!entity) {
-      throw new Error('Unrecognizable item format');
+      throw new ApplicationError(ErrorCodes.UNRECOGNIZABLE_ITEM_FORMAT);
     }
 
-    await this.inventoryStore.store(interactiveId, entity);
+    const r = await this.inventoryStore.store(interactiveId, entity);
 
-    return id;
-  }
-
-  public async dispose(actorId: string, itemId: string): Promise<boolean> {
-    return this.inventoryStore.drop(actorId, itemId);
-  }
-
-  public async loot(
-    looterId: string,
-    containerId: string,
-    itemId: string,
-  ): Promise<boolean> {
-    const item = await this.inventoryStore.look(containerId, itemId);
-
-    if (item) {
-      const result = await this.inventoryStore.drop(containerId, itemId);
-
-      if (result) {
-        return this.inventoryStore.store(looterId, item);
-      }
+    if (!r) {
+      throw new ApplicationError(ErrorCodes.DUPLICATED_ITEM);
     }
 
-    return false;
+    return entity.id;
   }
 
   public async erase(actorId: string): Promise<void> {
-    await this.inventoryStore.remove(actorId);
+    return this.inventoryStore.remove(actorId);
   }
 }
