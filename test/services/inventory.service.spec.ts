@@ -7,6 +7,7 @@ import { INVENTORY_STORE_TOKEN, ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
 import { InventoryStore } from '@infra/stores/inventory.store';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { GeneratorHelper } from '@helpers/generator.helper.service';
+import { ErrorCodes } from '@errors/error-code';
 
 import {
   firstAidKit,
@@ -51,19 +52,19 @@ describe('InventoryService', () => {
 
   describe('spawnItem', () => {
     describe('when item did not exist in catalog', () => {
-      it('throw error', async () => {
+      it('throw ITEM_NOT_FOUND', async () => {
         when(mockedItemCatalogStore.getItem('WEAPON', 'itemId1')).thenResolve(
           null,
         );
 
         await expect(
           service.spawn('actorId1', 'WEAPON', 'itemId1'),
-        ).rejects.toThrowError('Item not found');
+        ).rejects.toThrowError(ErrorCodes.ITEM_NOT_FOUND);
       });
     });
 
-    describe('when item was spawned', () => {
-      it('return item entity id', async () => {
+    describe('when item was duplicated', () => {
+      it('throw DUPLICATED_ITEM', async () => {
         when(
           mockedItemCatalogStore.getItem<WeaponDefinition>(
             'WEAPON',
@@ -73,15 +74,17 @@ describe('InventoryService', () => {
 
         when(mockedGeneratorHelper.newId()).thenReturn('sword1');
 
-        const result = await service.spawn(
-          'actorId1',
-          sword.category,
-          sword.info.name,
+        when(mockedInventoryStore.store('WEAPON', swordEntity)).thenResolve(
+          false,
         );
 
-        expect(result).toEqual('sword1');
+        await expect(
+          service.spawn('actorId1', sword.category, sword.info.name),
+        ).rejects.toThrowError(ErrorCodes.DUPLICATED_ITEM);
       });
+    });
 
+    describe('when item was spawned', () => {
       [
         {
           item: sword,
@@ -96,7 +99,7 @@ describe('InventoryService', () => {
           entity: friendNoteEntity,
         },
       ].forEach(({ item, entity }) => {
-        it('should store item', async () => {
+        it('return id', async () => {
           when(
             mockedItemCatalogStore.getItem(item.category, item.info.name),
           ).thenResolve(item);
@@ -107,11 +110,15 @@ describe('InventoryService', () => {
 
           when(
             mockedInventoryStore.store('actorId1', deepEqual(entity)),
-          ).thenCall(() => (stored = true));
+          ).thenResolve(true);
 
-          await service.spawn('actorId1', item.category, item.info.name);
+          const result = await service.spawn(
+            'actorId1',
+            item.category,
+            item.info.name,
+          );
 
-          expect(stored).toEqual(true);
+          expect(result).toEqual(entity.id);
         });
       });
     });
@@ -152,19 +159,19 @@ describe('InventoryService', () => {
 
   describe('lootItem', () => {
     describe('item was not found', () => {
-      it('return false', async () => {
+      it('throw ITEM_NOT_FOUND', async () => {
         when(mockedInventoryStore.look('chest1', swordEntity.id)).thenResolve(
           null,
         );
 
-        const result = await service.loot('actor2', 'chest1', swordEntity.id);
-
-        expect(result).toEqual(false);
+        await expect(
+          service.loot('actor2', 'chest1', swordEntity.id),
+        ).rejects.toThrowError(ErrorCodes.ITEM_NOT_FOUND);
       });
     });
 
     describe('item was already looted', () => {
-      it('return false', async () => {
+      it('throw LOOTED_BY_OTHER', async () => {
         when(mockedInventoryStore.look('chest1', swordEntity.id)).thenResolve(
           swordEntity,
         );
@@ -173,14 +180,14 @@ describe('InventoryService', () => {
           false,
         );
 
-        const result = await service.loot('actor2', 'chest1', swordEntity.id);
-
-        expect(result).toEqual(false);
+        await expect(
+          service.loot('actor2', 'chest1', swordEntity.id),
+        ).rejects.toThrowError(ErrorCodes.LOOTED_BY_OTHER);
       });
     });
 
     describe('item could not be looted', () => {
-      it('return false', async () => {
+      it('throw DUPLICATED_ITEM', async () => {
         when(mockedInventoryStore.look('chest1', swordEntity.id)).thenResolve(
           swordEntity,
         );
@@ -193,9 +200,9 @@ describe('InventoryService', () => {
           mockedInventoryStore.store('actor2', deepEqual(swordEntity)),
         ).thenResolve(false);
 
-        const result = await service.loot('actor2', 'chest1', swordEntity.id);
-
-        expect(result).toEqual(false);
+        await expect(
+          service.loot('actor2', 'chest1', swordEntity.id),
+        ).rejects.toThrowError(ErrorCodes.DUPLICATED_ITEM);
       });
     });
 
@@ -215,7 +222,7 @@ describe('InventoryService', () => {
 
         const result = await service.loot('actor2', 'chest1', swordEntity.id);
 
-        expect(result).toEqual(true);
+        expect(result).toEqual(swordEntity.id);
       });
     });
   });

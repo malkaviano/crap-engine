@@ -39,7 +39,7 @@ export class InventoryService {
     looterId: string,
     containerId: string,
     itemId: string,
-  ): Promise<void> {
+  ): Promise<string> {
     const item = await this.inventoryStore.look(containerId, itemId);
 
     if (!item) {
@@ -57,6 +57,8 @@ export class InventoryService {
     if (!result) {
       throw new ApplicationError(ErrorCodes.DUPLICATED_ITEM);
     }
+
+    return item.id;
   }
 
   public async spawn(
