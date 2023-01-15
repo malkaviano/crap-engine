@@ -36,17 +36,9 @@ export class ItemService {
     category: string,
     name: string,
   ): Promise<ItemDefinition | null> {
-    const result = await this.itemCatalogStore.getItem(category, name);
+    this.customLoggerHelper.log('Find one', { category, name });
 
-    if (result) {
-      this.customLoggerHelper.log('Item found', result);
-
-      return result;
-    }
-
-    this.customLoggerHelper.log('Item not found', { name });
-
-    return null;
+    return this.itemCatalogStore.getItem(category, name);
   }
 
   public async remove(category: string, name: string): Promise<void> {

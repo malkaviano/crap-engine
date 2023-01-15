@@ -1,8 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { INVENTORY_STORE_TOKEN, ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
+import { INVENTORY_STORE_TOKEN } from '@root/tokens';
 import { InventoryStoreInterface } from '@interfaces/stores/inventory-store.interface';
-import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
 import { GeneratorHelper } from '@helpers/generator.helper.service';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { WeaponDefinition } from '@definitions/weapon.definition';
@@ -13,14 +12,14 @@ import { ReadableEntity } from '@entities/readable.entity';
 import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { ApplicationError } from '@errors/application.error';
 import { ErrorCodes } from '@errors/error-code';
+import { ItemService } from '@catalogs/item/item.service';
 
 @Injectable()
 export class InventoryService {
   constructor(
     @Inject(INVENTORY_STORE_TOKEN)
     private readonly inventoryStore: InventoryStoreInterface,
-    @Inject(ITEM_CATALOG_STORE_TOKEN)
-    private readonly itemCatalogStore: ItemCatalogStoreInterface,
+    private readonly itemService: ItemService,
     private readonly generatorHelper: GeneratorHelper,
   ) {}
 
@@ -66,7 +65,7 @@ export class InventoryService {
     itemCategory: string,
     itemName: string,
   ): Promise<string> {
-    const item = await this.itemCatalogStore.getItem(itemCategory, itemName);
+    const item = await this.itemService.findOne(itemCategory, itemName);
 
     if (!item) {
       throw new ApplicationError(ErrorCodes.ITEM_NOT_FOUND);

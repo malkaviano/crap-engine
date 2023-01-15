@@ -18,11 +18,13 @@ import {
   swordEntity,
 } from '../fakes';
 import { mockedGeneratorHelper, mockedItemCatalogStore } from '../shared-mocks';
+import { ItemService } from '@catalogs/item/item.service';
 
 describe('InventoryService', () => {
   let service: InventoryService;
 
   const mockedInventoryStore = mock(InventoryStore);
+  const mockedItemService = mock(ItemService);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -33,8 +35,8 @@ describe('InventoryService', () => {
           useValue: instance(mockedInventoryStore),
         },
         {
-          provide: ITEM_CATALOG_STORE_TOKEN,
-          useValue: instance(mockedItemCatalogStore),
+          provide: ItemService,
+          useValue: instance(mockedItemService),
         },
         {
           provide: GeneratorHelper,
@@ -53,9 +55,7 @@ describe('InventoryService', () => {
   describe('spawnItem', () => {
     describe('when item did not exist in catalog', () => {
       it('throw ITEM_NOT_FOUND', async () => {
-        when(mockedItemCatalogStore.getItem('WEAPON', 'itemId1')).thenResolve(
-          null,
-        );
+        when(mockedItemService.findOne('WEAPON', 'itemId1')).thenResolve(null);
 
         await expect(
           service.spawn('actorId1', 'WEAPON', 'itemId1'),
@@ -65,12 +65,9 @@ describe('InventoryService', () => {
 
     describe('when item was duplicated', () => {
       it('throw DUPLICATED_ITEM', async () => {
-        when(
-          mockedItemCatalogStore.getItem<WeaponDefinition>(
-            'WEAPON',
-            sword.info.name,
-          ),
-        ).thenResolve(sword);
+        when(mockedItemService.findOne('WEAPON', sword.info.name)).thenResolve(
+          sword,
+        );
 
         when(mockedGeneratorHelper.newId()).thenReturn('sword1');
 
@@ -101,7 +98,7 @@ describe('InventoryService', () => {
       ].forEach(({ item, entity }) => {
         it('return id', async () => {
           when(
-            mockedItemCatalogStore.getItem(item.category, item.info.name),
+            mockedItemService.findOne(item.category, item.info.name),
           ).thenResolve(item);
 
           when(mockedGeneratorHelper.newId()).thenReturn(entity.id);
