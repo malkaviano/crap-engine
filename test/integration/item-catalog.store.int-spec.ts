@@ -28,11 +28,11 @@ describe('ItemCatalogStore', () => {
   });
 
   it('should store and retrieve items', async () => {
-    await service.upsertItem(sword);
+    await service.save(sword);
 
-    await service.upsertItem(firstAidKit);
+    await service.save(firstAidKit);
 
-    await service.upsertItem(friendNote);
+    await service.save(friendNote);
 
     let result1 = await service.getItem<WeaponDefinition>(
       sword.category,

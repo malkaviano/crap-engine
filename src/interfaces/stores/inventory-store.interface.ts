@@ -1,3 +1,5 @@
+import { Observable } from 'rxjs';
+
 import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { ConsumableEntity } from '@entities/consumable.entity';
 import { ReadableEntity } from '@entities/readable.entity';
@@ -7,11 +9,11 @@ export interface InventoryStoreInterface {
   store(
     interactiveId: string,
     itemEntity: ItemEntityInterface,
-  ): Promise<boolean>;
+  ): Observable<boolean>;
   look<T extends WeaponEntity | ConsumableEntity | ReadableEntity>(
     interactiveId: string,
     itemId: string,
-  ): Promise<T | null>;
-  drop(interactiveId: string, itemId: string): Promise<boolean>;
-  remove(interactiveId: string): Promise<void>;
+  ): Observable<T | null>;
+  drop(interactiveId: string, itemId: string): Observable<boolean>;
+  remove(interactiveId: string): Observable<boolean>;
 }

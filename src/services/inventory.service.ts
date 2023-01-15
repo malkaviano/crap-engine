@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { map, mergeMap, Observable } from 'rxjs';
+
 import { INVENTORY_STORE_TOKEN } from '@root/tokens';
 import { InventoryStoreInterface } from '@interfaces/stores/inventory-store.interface';
 import { GeneratorHelper } from '@helpers/generator.helper.service';
@@ -13,6 +15,7 @@ import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { ApplicationError } from '@errors/application.error';
 import { ErrorSignals } from '@root/signals/error-signals';
 import { ItemService } from '@catalogs/item/item.service';
+import { StatusSignals } from '@signals/status-signals';
 
 @Injectable()
 export class InventoryService {
@@ -23,103 +26,143 @@ export class InventoryService {
     private readonly generatorHelper: GeneratorHelper,
   ) {}
 
-  public async look<T extends WeaponEntity | ConsumableEntity | ReadableEntity>(
+  public look<T extends WeaponEntity | ConsumableEntity | ReadableEntity>(
     interactiveId: string,
     itemId: string,
-  ): Promise<T | null> {
-    return this.inventoryStore.look<T>(interactiveId, itemId);
+  ): Observable<T> {
+    return this.inventoryStore.look<T>(interactiveId, itemId).pipe(
+      map((item) => {
+        if (!item) {
+          throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404);
+        }
+
+        return item;
+      }),
+    );
   }
 
-  public async dispose(actorId: string, itemId: string): Promise<boolean> {
-    return this.inventoryStore.drop(actorId, itemId);
+  public dispose(actorId: string, itemId: string): Observable<string> {
+    return this.inventoryStore.drop(actorId, itemId).pipe(
+      map((result) => {
+        if (!result) {
+          throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404);
+        }
+
+        return StatusSignals.ITEM_LOST;
+      }),
+    );
   }
 
-  public async loot(
+  public loot(
     looterId: string,
     containerId: string,
     itemId: string,
-  ): Promise<string> {
-    const item = await this.inventoryStore.look(containerId, itemId);
+  ): Observable<string> {
+    return this.inventoryStore.look(containerId, itemId).pipe(
+      map((entity) => {
+        if (!entity) {
+          throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404);
+        }
 
-    if (!item) {
-      throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND);
-    }
+        return entity;
+      }),
+      mergeMap((entity) => {
+        return this.inventoryStore.drop(containerId, itemId).pipe(
+          map((result) => {
+            return { result, entity };
+          }),
+        );
+      }),
+      mergeMap(({ result, entity }) => {
+        if (!result) {
+          throw new ApplicationError(ErrorSignals.LOOTED_BY_OTHER, 400);
+        }
 
-    let result = await this.inventoryStore.drop(containerId, itemId);
+        return this.inventoryStore.store(looterId, entity);
+      }),
+      map((result) => {
+        if (!result) {
+          throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 400);
+        }
 
-    if (!result) {
-      throw new ApplicationError(ErrorSignals.LOOTED_BY_OTHER);
-    }
-
-    result = await this.inventoryStore.store(looterId, item);
-
-    if (!result) {
-      throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM);
-    }
-
-    return item.id;
+        return StatusSignals.ITEM_LOOTED;
+      }),
+    );
   }
 
-  public async spawn(
+  public spawn(
     interactiveId: string,
     itemCategory: string,
     itemName: string,
-  ): Promise<string> {
-    const item = await this.itemService.findOne(itemCategory, itemName);
+  ): Observable<string> {
+    return this.itemService.findOne(itemCategory, itemName).pipe(
+      map((item) => {
+        const id = this.generatorHelper.newId();
 
-    if (!item) {
-      throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND);
-    }
+        let entity: ItemEntityInterface | null = null;
 
-    const id = this.generatorHelper.newId();
+        if (item instanceof WeaponDefinition) {
+          entity = new WeaponEntity(
+            id,
+            item.info,
+            item.usability,
+            item.skillName,
+            item.dodgeable,
+            item.energyActivation,
+            item.damage,
+          );
+        } else if (item instanceof ConsumableDefinition) {
+          entity = new ConsumableEntity(
+            id,
+            item.info,
+            item.usability,
+            item.skillName,
+            item.effectType,
+            item.amount,
+            item.energy,
+          );
+        } else if (item instanceof ReadableDefinition) {
+          entity = new ReadableEntity(
+            id,
+            item.info,
+            item.usability,
+            item.skillName,
+            item.title,
+            item.paragraphs,
+          );
+        }
 
-    let entity: ItemEntityInterface | null = null;
+        if (!entity) {
+          throw new ApplicationError(
+            ErrorSignals.UNRECOGNIZABLE_ITEM_FORMAT,
+            400,
+          );
+        }
 
-    if (item instanceof WeaponDefinition) {
-      entity = new WeaponEntity(
-        id,
-        item.info,
-        item.usability,
-        item.skillName,
-        item.dodgeable,
-        item.energyActivation,
-        item.damage,
-      );
-    } else if (item instanceof ConsumableDefinition) {
-      entity = new ConsumableEntity(
-        id,
-        item.info,
-        item.usability,
-        item.skillName,
-        item.effectType,
-        item.amount,
-        item.energy,
-      );
-    } else if (item instanceof ReadableDefinition) {
-      entity = new ReadableEntity(
-        id,
-        item.info,
-        item.usability,
-        item.skillName,
-        item.title,
-        item.paragraphs,
-      );
-    }
+        return entity;
+      }),
+      mergeMap((entity) => {
+        return this.inventoryStore.store(interactiveId, entity).pipe(
+          map((result) => {
+            return { result, entity };
+          }),
+        );
+      }),
+      map(({ result, entity }) => {
+        if (!result) {
+          throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 400);
+        }
 
-    if (!entity) {
-      throw new ApplicationError(ErrorSignals.UNRECOGNIZABLE_ITEM_FORMAT);
-    }
-
-    const r = await this.inventoryStore.store(interactiveId, entity);
-
-    if (!r) {
-      throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM);
-    }
-
-    return entity.id;
+        return entity.id;
+      }),
+    );
   }
 
-  public async erase(actorId: string): Promise<void> {
-    return this.inventoryStore.remove(actorId);
+  public erase(actorId: string): Observable<string> {
+    return this.inventoryStore.remove(actorId).pipe(
+      map(() => {
+        return StatusSignals.INVENTORY_ERASED;
+      }),
+    );
   }
 }

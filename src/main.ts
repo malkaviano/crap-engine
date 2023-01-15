@@ -6,6 +6,9 @@ import 'dotenv/config';
 import helmet from 'helmet';
 
 import { AppModule } from '@root/app.module';
+import { ApplicationExceptionFilter } from '@filters/application-exception.filter';
+import { DateTimeHelper } from '@helpers/date-time.helper.service';
+import { CustomLoggerHelper } from './helpers/custom-logger.helper.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,6 +22,10 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  const cl = app.get(CustomLoggerHelper);
+
+  app.useGlobalFilters(new ApplicationExceptionFilter(cl));
 
   const config = new DocumentBuilder()
     .setTitle('CrapEngine')
@@ -37,7 +44,7 @@ async function bootstrap() {
 
   const logger = new Logger();
 
-  logger.log(`Server started on port ${port}`, 'SERVER');
+  cl.log(`Server started on port ${port}`);
 }
 
 bootstrap();

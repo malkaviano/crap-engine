@@ -1,5 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 
+import { filter, map, mergeMap, Observable, of } from 'rxjs';
+
 import { CreateItemDto } from '@dtos/create-item.dto';
 import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
 import { ItemDefinition } from '@definitions/item.definition';
@@ -10,6 +12,8 @@ import { DiceSetHelper } from '@helpers/dice-set.helper.service';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ApplicationError } from '@errors/application.error';
 import { ReadableDefinition } from '@definitions/readable.definition';
+import { ErrorSignals } from '@signals/error-signals';
+import { StatusSignals } from '@signals/status-signals';
 
 @Injectable()
 export class ItemService {
@@ -20,31 +24,64 @@ export class ItemService {
     private readonly diceSetHelper: DiceSetHelper,
   ) {}
 
-  public async save(dto: CreateItemDto): Promise<void> {
-    this.customLoggerHelper.log('Saving item', dto);
+  public create(dto: CreateItemDto): Observable<string> {
+    this.customLoggerHelper.log('Creating item', dto);
 
-    const item = this.createItem(dto);
+    const item = of(this.createItem(dto)).pipe(
+      map((item) => {
+        if (!item) {
+          throw new ApplicationError(ErrorSignals.ITEM_WRONG_CATEGORY, 400);
+        }
 
-    if (!item) {
-      throw new ApplicationError('Item with wrong category');
-    }
+        return item;
+      }),
+      mergeMap((item) => {
+        return this.itemCatalogStore.save(item);
+      }),
+      map((result) => {
+        if (!result) {
+          throw new ApplicationError(ErrorSignals.ITEM_ALREADY_EXISTS, 400);
+        }
 
-    await this.itemCatalogStore.upsertItem(item);
+        this.customLoggerHelper.log('Created item', dto);
+
+        return StatusSignals.ITEM_CREATED;
+      }),
+    );
+
+    return item;
   }
 
-  async findOne(
-    category: string,
-    name: string,
-  ): Promise<ItemDefinition | null> {
+  public findOne(category: string, name: string): Observable<ItemDefinition> {
     this.customLoggerHelper.log('Find one', { category, name });
 
-    return this.itemCatalogStore.getItem(category, name);
+    return this.itemCatalogStore.getItem(category, name).pipe(
+      map((item) => {
+        if (!item) {
+          throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404);
+        }
+
+        return item;
+      }),
+    );
   }
 
-  public async remove(category: string, name: string): Promise<void> {
+  public remove(category: string, name: string): Observable<string> {
     this.customLoggerHelper.log('Deleting item', { category, name });
 
-    await this.itemCatalogStore.removeItem(category, name);
+    const msg = this.itemCatalogStore.removeItem(category, name).pipe(
+      map((result) => {
+        if (!result) {
+          throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404);
+        }
+
+        this.customLoggerHelper.log('Deleted item', { category, name });
+
+        return StatusSignals.ITEM_DELETED;
+      }),
+    );
+
+    return msg;
   }
 
   private createItem(dto: CreateItemDto): ItemDefinition | null {

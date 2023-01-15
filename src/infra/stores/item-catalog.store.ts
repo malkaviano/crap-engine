@@ -1,11 +1,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
+import { defer, from, map, Observable } from 'rxjs';
+
 import { AstraClient } from '@root/infra/clients/astra.client';
 import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { ItemDefinition } from '@definitions/item.definition';
-import { InfraError } from '@errors/infra.error';
-import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { ConverterHelper } from '@helpers/converter.helper.service';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
@@ -24,7 +24,6 @@ export class ItemCatalogStore
   constructor(
     private readonly astraClient: AstraClient,
     private readonly configValuesHelper: ConfigValuesHelper,
-    private readonly logger: CustomLoggerHelper,
     private readonly converterHelperService: ConverterHelper,
   ) {
     const fields = ['category', 'name', 'payload'].join(',');
@@ -33,7 +32,7 @@ export class ItemCatalogStore
 
     this.insertStmt =
       `insert into ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.item_catalog ` +
-      `(${fields}) values(?,?,?);`;
+      `(${fields}) values(?,?,?) IF NOT EXISTS;`;
 
     this.selectStmt =
       'select payload ' +
@@ -42,7 +41,7 @@ export class ItemCatalogStore
 
     this.deleteStmt =
       `delete from ${this.configValuesHelper.ASTRA_DB_KEYSPACE}.item_catalog ` +
-      `where ${predicate};`;
+      `where ${predicate} IF EXISTS;`;
   }
 
   public async onModuleInit(): Promise<void> {
@@ -53,54 +52,58 @@ export class ItemCatalogStore
     );
   }
 
-  public async getItem<
+  public getItem<
     T extends WeaponDefinition | ConsumableDefinition | ReadableDefinition,
-  >(category: string, name: string): Promise<T | null> {
-    try {
-      const values = await this.astraClient.executeStmt(this.selectStmt, [
-        [category, 'string'],
-        [name, 'string'],
-      ]);
+  >(category: string, name: string): Observable<T | null> {
+    return defer(() =>
+      from(
+        this.astraClient.executeStmt(this.selectStmt, [
+          [category, 'string'],
+          [name, 'string'],
+        ]),
+      ),
+    ).pipe(
+      map((values) => {
+        if (values.length) {
+          const items = this.allItems<T>(values);
 
-      if (values.length) {
-        const items = this.allItems<T>(values);
+          return items[0];
+        }
 
-        return items[0];
-      }
-
-      return null;
-    } catch (error) {
-      this.logger.error(error.message, error);
-
-      throw new InfraError(error.message);
-    }
+        return null;
+      }),
+    );
   }
 
-  public async upsertItem(item: ItemDefinition): Promise<void> {
-    try {
-      await this.astraClient.executeStmt(this.insertStmt, [
-        [item.category, 'string'],
-        [item.info.name, 'string'],
-        [JSON.stringify(item), 'string'],
-      ]);
-    } catch (error) {
-      this.logger.error(error.message, error);
-
-      throw new InfraError(error.message);
-    }
+  public save(item: ItemDefinition): Observable<boolean> {
+    return defer(() =>
+      from(
+        this.astraClient.executeStmt(this.insertStmt, [
+          [item.category, 'string'],
+          [item.info.name, 'string'],
+          [JSON.stringify(item), 'string'],
+        ]),
+      ),
+    ).pipe(
+      map((result) => {
+        return !!result[0][0];
+      }),
+    );
   }
 
-  public async removeItem(category: string, name: string): Promise<void> {
-    try {
-      await this.astraClient.executeStmt(this.deleteStmt, [
-        [category, 'string'],
-        [name, 'string'],
-      ]);
-    } catch (error) {
-      this.logger.error(error.message, error);
-
-      throw new InfraError(error.message);
-    }
+  public removeItem(category: string, name: string): Observable<boolean> {
+    return defer(() =>
+      from(
+        this.astraClient.executeStmt(this.deleteStmt, [
+          [category, 'string'],
+          [name, 'string'],
+        ]),
+      ),
+    ).pipe(
+      map((result) => {
+        return !!result[0][0];
+      }),
+    );
   }
 
   private allItems<

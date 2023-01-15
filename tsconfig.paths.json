@@ -40,6 +40,12 @@
       ],
       "@rules/*": [
         "src/rules/*"
+      ],
+      "@signals/*": [
+        "src/signals/*"
+      ],
+      "@filters/*": [
+        "src/filters/*"
       ]
     }
   }

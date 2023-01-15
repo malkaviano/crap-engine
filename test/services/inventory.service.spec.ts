@@ -1,13 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { deepEqual, instance, mock, when } from 'ts-mockito';
+import { of, throwError } from 'rxjs';
 
 import { InventoryService } from '@services/inventory.service';
 import { INVENTORY_STORE_TOKEN } from '@root/tokens';
 import { InventoryStore } from '@infra/stores/inventory.store';
-import { WeaponDefinition } from '@definitions/weapon.definition';
 import { GeneratorHelper } from '@helpers/generator.helper.service';
 import { ErrorSignals } from '@root/signals/error-signals';
+import { ItemService } from '@catalogs/item/item.service';
+import { ApplicationError } from '@errors/application.error';
+import { StatusSignals } from '@signals/status-signals';
 
 import {
   firstAidKit,
@@ -17,8 +20,7 @@ import {
   sword,
   swordEntity,
 } from '../fakes';
-import { mockedGeneratorHelper, mockedItemCatalogStore } from '../shared-mocks';
-import { ItemService } from '@catalogs/item/item.service';
+import { mockedGeneratorHelper } from '../shared-mocks';
 
 describe('InventoryService', () => {
   let service: InventoryService;
@@ -54,30 +56,46 @@ describe('InventoryService', () => {
 
   describe('spawnItem', () => {
     describe('when item did not exist in catalog', () => {
-      it('throw ITEM_NOT_FOUND', async () => {
-        when(mockedItemService.findOne('WEAPON', 'itemId1')).thenResolve(null);
+      it('throw ITEM_NOT_FOUND', (done) => {
+        when(mockedItemService.findOne('WEAPON', 'itemId1')).thenReturn(
+          throwError(
+            () => new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404),
+          ),
+        );
 
-        await expect(
-          service.spawn('actorId1', 'WEAPON', 'itemId1'),
-        ).rejects.toThrowError(ErrorSignals.ITEM_NOT_FOUND);
+        service.spawn('actorId1', 'WEAPON', 'itemId1').subscribe({
+          error: (result) => {
+            done();
+
+            expect(result).toEqual(
+              new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404),
+            );
+          },
+        });
       });
     });
 
     describe('when item was duplicated', () => {
-      it('throw DUPLICATED_ITEM', async () => {
-        when(mockedItemService.findOne('WEAPON', sword.info.name)).thenResolve(
-          sword,
+      it('throw DUPLICATED_ITEM', (done) => {
+        when(mockedItemService.findOne('WEAPON', sword.info.name)).thenReturn(
+          of(sword),
         );
 
         when(mockedGeneratorHelper.newId()).thenReturn('sword1');
 
-        when(mockedInventoryStore.store('WEAPON', swordEntity)).thenResolve(
-          false,
-        );
+        when(
+          mockedInventoryStore.store('actorId1', deepEqual(swordEntity)),
+        ).thenReturn(of(false));
 
-        await expect(
-          service.spawn('actorId1', sword.category, sword.info.name),
-        ).rejects.toThrowError(ErrorSignals.DUPLICATED_ITEM);
+        service.spawn('actorId1', sword.category, sword.info.name).subscribe({
+          error: (result) => {
+            done();
+
+            expect(result).toEqual(
+              new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 400),
+            );
+          },
+        });
       });
     });
 
@@ -96,130 +114,195 @@ describe('InventoryService', () => {
           entity: friendNoteEntity,
         },
       ].forEach(({ item, entity }) => {
-        it('return id', async () => {
+        it('return id', (done) => {
           when(
             mockedItemService.findOne(item.category, item.info.name),
-          ).thenResolve(item);
+          ).thenReturn(of(item));
 
           when(mockedGeneratorHelper.newId()).thenReturn(entity.id);
 
-          let stored = false;
-
           when(
             mockedInventoryStore.store('actorId1', deepEqual(entity)),
-          ).thenResolve(true);
+          ).thenReturn(of(true));
 
-          const result = await service.spawn(
-            'actorId1',
-            item.category,
-            item.info.name,
-          );
+          service
+            .spawn('actorId1', item.category, item.info.name)
+            .subscribe((result) => {
+              done();
 
-          expect(result).toEqual(entity.id);
+              expect(result).toEqual(entity.id);
+            });
         });
       });
     });
   });
 
   describe('disposeItem', () => {
-    [
-      {
-        expected: true,
-      },
-      {
-        expected: false,
-      },
-    ].forEach(({ expected }) => {
-      it(`return ${expected}`, async () => {
-        when(mockedInventoryStore.drop('actor1', 'item1')).thenResolve(false);
+    describe(`when item was disposed`, () => {
+      it(`return ITEM_LOST`, (done) => {
+        when(mockedInventoryStore.drop('actor1', 'item1')).thenReturn(of(true));
 
-        const result = await service.dispose('actor1', 'item1');
+        service.dispose('actor1', 'item1').subscribe((result) => {
+          done();
 
-        expect(result).toEqual(false);
+          expect(result).toEqual(StatusSignals.ITEM_LOST);
+        });
+      });
+    });
+
+    describe(`when item was not found`, () => {
+      it(`throw ITEM_NOT_FOUND`, (done) => {
+        when(mockedInventoryStore.drop('actor1', 'item1')).thenReturn(
+          of(false),
+        );
+
+        service.dispose('actor1', 'item1').subscribe({
+          error: (result) => {
+            done();
+
+            expect(result).toEqual(
+              new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404),
+            );
+          },
+        });
       });
     });
   });
 
-  describe('removeAll', () => {
-    it('should call store remove', async () => {
-      let result = false;
+  describe('look', () => {
+    describe('when item was not found', () => {
+      it('throw ITEM_NOT_FOUND', (done) => {
+        when(mockedInventoryStore.look('actor1', 'sword1')).thenReturn(
+          of(null),
+        );
 
-      when(mockedInventoryStore.remove('actor1')).thenCall(
-        () => (result = true),
-      );
+        service.look('actor1', 'sword1').subscribe({
+          error: (result) => {
+            done();
 
-      await service.erase('actor1');
+            expect(result).toEqual(
+              new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404),
+            );
+          },
+        });
+      });
+    });
 
-      expect(result).toEqual(true);
+    describe('when item was found', () => {
+      it('return item', (done) => {
+        when(mockedInventoryStore.look('actor1', swordEntity.id)).thenReturn(
+          of(swordEntity),
+        );
+
+        service.look('actor1', swordEntity.id).subscribe({
+          next: (result) => {
+            done();
+
+            expect(result).toEqual(swordEntity);
+          },
+        });
+      });
+    });
+  });
+
+  describe('erase', () => {
+    it('return INVENTORY_ERASED', (done) => {
+      when(mockedInventoryStore.remove('actor1')).thenReturn(of(true));
+
+      service.erase('actor1').subscribe((result) => {
+        done();
+
+        expect(result).toEqual(StatusSignals.INVENTORY_ERASED);
+      });
     });
   });
 
   describe('lootItem', () => {
     describe('item was not found', () => {
-      it('throw ITEM_NOT_FOUND', async () => {
-        when(mockedInventoryStore.look('chest1', swordEntity.id)).thenResolve(
-          null,
+      it('throw ITEM_NOT_FOUND', (done) => {
+        when(mockedInventoryStore.look('chest1', swordEntity.id)).thenReturn(
+          of(null),
         );
 
-        await expect(
-          service.loot('actor2', 'chest1', swordEntity.id),
-        ).rejects.toThrowError(ErrorSignals.ITEM_NOT_FOUND);
+        service.loot('actor2', 'chest1', swordEntity.id).subscribe({
+          error: (result) => {
+            done();
+
+            expect(result).toEqual(
+              new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404),
+            );
+          },
+        });
       });
     });
 
     describe('item was already looted', () => {
-      it('throw LOOTED_BY_OTHER', async () => {
-        when(mockedInventoryStore.look('chest1', swordEntity.id)).thenResolve(
-          swordEntity,
+      it('throw LOOTED_BY_OTHER', (done) => {
+        when(mockedInventoryStore.look('chest1', swordEntity.id)).thenReturn(
+          of(swordEntity),
         );
 
-        when(mockedInventoryStore.drop('chest1', swordEntity.id)).thenResolve(
-          false,
+        when(mockedInventoryStore.drop('chest1', swordEntity.id)).thenReturn(
+          of(false),
         );
 
-        await expect(
-          service.loot('actor2', 'chest1', swordEntity.id),
-        ).rejects.toThrowError(ErrorSignals.LOOTED_BY_OTHER);
+        service.loot('actor2', 'chest1', swordEntity.id).subscribe({
+          error: (result) => {
+            done();
+
+            expect(result).toEqual(
+              new ApplicationError(ErrorSignals.LOOTED_BY_OTHER, 400),
+            );
+          },
+        });
       });
     });
 
     describe('item could not be looted', () => {
-      it('throw DUPLICATED_ITEM', async () => {
-        when(mockedInventoryStore.look('chest1', swordEntity.id)).thenResolve(
-          swordEntity,
+      it('throw DUPLICATED_ITEM', (done) => {
+        when(mockedInventoryStore.look('chest1', swordEntity.id)).thenReturn(
+          of(swordEntity),
         );
 
-        when(mockedInventoryStore.drop('chest1', swordEntity.id)).thenResolve(
-          true,
+        when(mockedInventoryStore.drop('chest1', swordEntity.id)).thenReturn(
+          of(true),
         );
 
         when(
           mockedInventoryStore.store('actor2', deepEqual(swordEntity)),
-        ).thenResolve(false);
+        ).thenReturn(of(false));
 
-        await expect(
-          service.loot('actor2', 'chest1', swordEntity.id),
-        ).rejects.toThrowError(ErrorSignals.DUPLICATED_ITEM);
+        service.loot('actor2', 'chest1', swordEntity.id).subscribe({
+          error: (result) => {
+            done();
+
+            expect(result).toEqual(
+              new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 400),
+            );
+          },
+        });
       });
     });
 
     describe('item was looted', () => {
-      it('return true', async () => {
-        when(mockedInventoryStore.look('chest1', swordEntity.id)).thenResolve(
-          swordEntity,
+      it('return ITEM_LOOTED', (done) => {
+        when(mockedInventoryStore.look('chest1', swordEntity.id)).thenReturn(
+          of(swordEntity),
         );
 
-        when(mockedInventoryStore.drop('chest1', swordEntity.id)).thenResolve(
-          true,
+        when(mockedInventoryStore.drop('chest1', swordEntity.id)).thenReturn(
+          of(true),
         );
 
         when(
           mockedInventoryStore.store('actor2', deepEqual(swordEntity)),
-        ).thenResolve(true);
+        ).thenReturn(of(true));
 
-        const result = await service.loot('actor2', 'chest1', swordEntity.id);
+        service.loot('actor2', 'chest1', swordEntity.id).subscribe((result) => {
+          done();
 
-        expect(result).toEqual(swordEntity.id);
+          expect(result).toEqual(StatusSignals.ITEM_LOOTED);
+        });
       });
     });
   });

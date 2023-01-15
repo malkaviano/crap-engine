@@ -1,5 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
+import { defer, from, map, Observable } from 'rxjs';
+
 import { InventoryStoreInterface } from '@interfaces/stores/inventory-store.interface';
 import { AstraClient } from '@root/infra/clients/astra.client';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
@@ -62,73 +64,75 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     );
   }
 
-  public async store(
+  public store(
     interactiveId: string,
     itemEntity: ItemEntityInterface,
-  ): Promise<boolean> {
-    try {
-      const r = await this.astraClient.executeStmt(this.insertStmt, [
-        [interactiveId, 'string'],
-        [itemEntity.id, 'string'],
-        [JSON.stringify(itemEntity), 'string'],
-      ]);
-
-      return !!r[0][0];
-    } catch (error) {
-      this.logger.error(error.message, error);
-
-      throw new InfraError(ErrorSignals.STORE_ERROR);
-    }
+  ): Observable<boolean> {
+    return defer(() =>
+      from(
+        this.astraClient.executeStmt(this.insertStmt, [
+          [interactiveId, 'string'],
+          [itemEntity.id, 'string'],
+          [JSON.stringify(itemEntity), 'string'],
+        ]),
+      ),
+    ).pipe(
+      map((result) => {
+        return !!result[0][0];
+      }),
+    );
   }
 
-  public async look<T extends WeaponEntity | ConsumableEntity | ReadableEntity>(
+  public look<T extends WeaponEntity | ConsumableEntity | ReadableEntity>(
     interactiveId: string,
     itemId: string,
-  ): Promise<T | null> {
-    try {
-      const values = await this.astraClient.executeStmt(this.selectStmt, [
-        [interactiveId, 'string'],
-        [itemId, 'string'],
-      ]);
+  ): Observable<T | null> {
+    return defer(() =>
+      from(
+        this.astraClient.executeStmt(this.selectStmt, [
+          [interactiveId, 'string'],
+          [itemId, 'string'],
+        ]),
+      ),
+    ).pipe(
+      map((values) => {
+        if (values.length) {
+          const obj = JSON.parse(values[0][2] as string);
 
-      if (values.length) {
-        const obj = JSON.parse(values[0][2] as string);
+          return this.converterHelperService.inflateItemEntity<T>(obj);
+        }
 
-        return this.converterHelperService.inflateItemEntity<T>(obj);
-      }
-
-      return null;
-    } catch (error) {
-      this.logger.error(error.message, error);
-
-      throw new InfraError(ErrorSignals.STORE_ERROR);
-    }
+        return null;
+      }),
+    );
   }
 
-  public async drop(interactiveId: string, itemId: string): Promise<boolean> {
-    try {
-      const r = await this.astraClient.executeStmt(this.deleteStmt, [
-        [interactiveId, 'string'],
-        [itemId, 'string'],
-      ]);
-
-      return !!r[0][0];
-    } catch (error) {
-      this.logger.error(error.message, error);
-
-      throw new InfraError(ErrorSignals.STORE_ERROR);
-    }
+  public drop(interactiveId: string, itemId: string): Observable<boolean> {
+    return defer(() =>
+      from(
+        this.astraClient.executeStmt(this.deleteStmt, [
+          [interactiveId, 'string'],
+          [itemId, 'string'],
+        ]),
+      ),
+    ).pipe(
+      map((result) => {
+        return !!result[0][0];
+      }),
+    );
   }
 
-  public async remove(interactiveId: string): Promise<void> {
-    try {
-      await this.astraClient.executeStmt(this.removeStmt, [
-        [interactiveId, 'string'],
-      ]);
-    } catch (error) {
-      this.logger.error(error.message, error);
-
-      throw new InfraError(ErrorSignals.STORE_ERROR);
-    }
+  public remove(interactiveId: string): Observable<boolean> {
+    return defer(() =>
+      from(
+        this.astraClient.executeStmt(this.removeStmt, [
+          [interactiveId, 'string'],
+        ]),
+      ),
+    ).pipe(
+      map(() => {
+        return true;
+      }),
+    );
   }
 }
