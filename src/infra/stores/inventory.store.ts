@@ -10,7 +10,7 @@ import { WeaponEntity } from '@entities/weapon.entity';
 import { ConverterHelper } from '@helpers/converter.helper.service';
 import { ConsumableEntity } from '@entities/consumable.entity';
 import { ReadableEntity } from '@entities/readable.entity';
-import { ErrorCodes } from '@errors/error-code';
+import { ErrorSignals } from '@root/signals/error-signals';
 
 @Injectable()
 export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
@@ -77,7 +77,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     } catch (error) {
       this.logger.error(error.message, error);
 
-      throw new InfraError(ErrorCodes.STORE_ERROR);
+      throw new InfraError(ErrorSignals.STORE_ERROR);
     }
   }
 
@@ -101,7 +101,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     } catch (error) {
       this.logger.error(error.message, error);
 
-      throw new InfraError(ErrorCodes.STORE_ERROR);
+      throw new InfraError(ErrorSignals.STORE_ERROR);
     }
   }
 
@@ -116,7 +116,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     } catch (error) {
       this.logger.error(error.message, error);
 
-      throw new InfraError(ErrorCodes.STORE_ERROR);
+      throw new InfraError(ErrorSignals.STORE_ERROR);
     }
   }
 
@@ -128,7 +128,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     } catch (error) {
       this.logger.error(error.message, error);
 
-      throw new InfraError(ErrorCodes.STORE_ERROR);
+      throw new InfraError(ErrorSignals.STORE_ERROR);
     }
   }
 }

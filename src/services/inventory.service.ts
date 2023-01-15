@@ -11,7 +11,7 @@ import { ReadableDefinition } from '@definitions/readable.definition';
 import { ReadableEntity } from '@entities/readable.entity';
 import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { ApplicationError } from '@errors/application.error';
-import { ErrorCodes } from '@errors/error-code';
+import { ErrorSignals } from '@root/signals/error-signals';
 import { ItemService } from '@catalogs/item/item.service';
 
 @Injectable()
@@ -42,19 +42,19 @@ export class InventoryService {
     const item = await this.inventoryStore.look(containerId, itemId);
 
     if (!item) {
-      throw new ApplicationError(ErrorCodes.ITEM_NOT_FOUND);
+      throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND);
     }
 
     let result = await this.inventoryStore.drop(containerId, itemId);
 
     if (!result) {
-      throw new ApplicationError(ErrorCodes.LOOTED_BY_OTHER);
+      throw new ApplicationError(ErrorSignals.LOOTED_BY_OTHER);
     }
 
     result = await this.inventoryStore.store(looterId, item);
 
     if (!result) {
-      throw new ApplicationError(ErrorCodes.DUPLICATED_ITEM);
+      throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM);
     }
 
     return item.id;
@@ -68,7 +68,7 @@ export class InventoryService {
     const item = await this.itemService.findOne(itemCategory, itemName);
 
     if (!item) {
-      throw new ApplicationError(ErrorCodes.ITEM_NOT_FOUND);
+      throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND);
     }
 
     const id = this.generatorHelper.newId();
@@ -107,13 +107,13 @@ export class InventoryService {
     }
 
     if (!entity) {
-      throw new ApplicationError(ErrorCodes.UNRECOGNIZABLE_ITEM_FORMAT);
+      throw new ApplicationError(ErrorSignals.UNRECOGNIZABLE_ITEM_FORMAT);
     }
 
     const r = await this.inventoryStore.store(interactiveId, entity);
 
     if (!r) {
-      throw new ApplicationError(ErrorCodes.DUPLICATED_ITEM);
+      throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM);
     }
 
     return entity.id;

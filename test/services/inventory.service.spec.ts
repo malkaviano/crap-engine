@@ -3,11 +3,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 
 import { InventoryService } from '@services/inventory.service';
-import { INVENTORY_STORE_TOKEN, ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
+import { INVENTORY_STORE_TOKEN } from '@root/tokens';
 import { InventoryStore } from '@infra/stores/inventory.store';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { GeneratorHelper } from '@helpers/generator.helper.service';
-import { ErrorCodes } from '@errors/error-code';
+import { ErrorSignals } from '@root/signals/error-signals';
 
 import {
   firstAidKit,
@@ -59,7 +59,7 @@ describe('InventoryService', () => {
 
         await expect(
           service.spawn('actorId1', 'WEAPON', 'itemId1'),
-        ).rejects.toThrowError(ErrorCodes.ITEM_NOT_FOUND);
+        ).rejects.toThrowError(ErrorSignals.ITEM_NOT_FOUND);
       });
     });
 
@@ -77,7 +77,7 @@ describe('InventoryService', () => {
 
         await expect(
           service.spawn('actorId1', sword.category, sword.info.name),
-        ).rejects.toThrowError(ErrorCodes.DUPLICATED_ITEM);
+        ).rejects.toThrowError(ErrorSignals.DUPLICATED_ITEM);
       });
     });
 
@@ -163,7 +163,7 @@ describe('InventoryService', () => {
 
         await expect(
           service.loot('actor2', 'chest1', swordEntity.id),
-        ).rejects.toThrowError(ErrorCodes.ITEM_NOT_FOUND);
+        ).rejects.toThrowError(ErrorSignals.ITEM_NOT_FOUND);
       });
     });
 
@@ -179,7 +179,7 @@ describe('InventoryService', () => {
 
         await expect(
           service.loot('actor2', 'chest1', swordEntity.id),
-        ).rejects.toThrowError(ErrorCodes.LOOTED_BY_OTHER);
+        ).rejects.toThrowError(ErrorSignals.LOOTED_BY_OTHER);
       });
     });
 
@@ -199,7 +199,7 @@ describe('InventoryService', () => {
 
         await expect(
           service.loot('actor2', 'chest1', swordEntity.id),
-        ).rejects.toThrowError(ErrorCodes.DUPLICATED_ITEM);
+        ).rejects.toThrowError(ErrorSignals.DUPLICATED_ITEM);
       });
     });
 
