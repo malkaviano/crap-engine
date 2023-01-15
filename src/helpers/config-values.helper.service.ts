@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ConfigValuesHelper {
-  public readonly DB_USER: string;
-  public readonly DB_PASSWORD: string;
   public readonly BCRYPT_SALT_ROUNDS: number;
   public readonly JWT_SECRET: string;
   public readonly JWT_EXPIRES_IN: number;
@@ -14,12 +12,12 @@ export class ConfigValuesHelper {
   public readonly ASTRA_DB_ID: string;
   public readonly AMQP_URL: string;
   public readonly AMQP_EVENT_QUEUE: string;
+  public readonly AMQP_RESULT_EXCHANGE: string;
+  public readonly AMQP_EVENT_EXCHANGE: string;
+  public readonly AMQP_EVENT_EXCHANGE_TYPE: string;
+  public readonly AMQP_RESULT_EXCHANGE_TYPE: string;
 
   constructor() {
-    this.DB_USER = process.env.DB_USER ?? '';
-
-    this.DB_PASSWORD = process.env.DB_PASSWORD ?? '';
-
     this.BCRYPT_SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '');
 
     this.JWT_SECRET = process.env.JWT_SECRET ?? '';
@@ -40,23 +38,24 @@ export class ConfigValuesHelper {
 
     this.AMQP_EVENT_QUEUE = process.env.AMQP_EVENT_QUEUE ?? '';
 
+    this.AMQP_RESULT_EXCHANGE = process.env.AMQP_FANOUT_EXCHANGE ?? '';
+
+    this.AMQP_EVENT_EXCHANGE = process.env.AMQP_EVENT_EXCHANGE ?? '';
+
+    this.AMQP_EVENT_EXCHANGE_TYPE = process.env.AMQP_EVENT_EXCHANGE_TYPE ?? '';
+
+    this.AMQP_RESULT_EXCHANGE_TYPE =
+      process.env.AMQP_RESULT_EXCHANGE_TYPE ?? '';
+
     this.validate();
   }
 
   private validate(): void {
-    if (!this.DB_USER.length) {
-      throw new Error('DB_USER is required');
-    }
-
-    if (!this.DB_PASSWORD.length) {
-      throw new Error('DB_PASSWORD is required');
-    }
-
     if (!this.BCRYPT_SALT_ROUNDS) {
       throw new Error('BCRYPT_SALT_ROUNDS is required');
     }
 
-    if (!this.JWT_SECRET.length) {
+    if (!this.JWT_SECRET?.length) {
       throw new Error('JWT_SECRET is required');
     }
 
@@ -68,28 +67,44 @@ export class ConfigValuesHelper {
       throw new Error('ENGINE_LOOP_MS is required');
     }
 
-    if (!this.ASTRA_TOKEN.length) {
+    if (!this.ASTRA_TOKEN?.length) {
       throw new Error('ASTRA_TOKEN is required');
     }
 
-    if (!this.ASTRA_DB_REGION.length) {
+    if (!this.ASTRA_DB_REGION?.length) {
       throw new Error('ASTRA_DB_REGION is required');
     }
 
-    if (!this.ASTRA_DB_ID.length) {
+    if (!this.ASTRA_DB_ID?.length) {
       throw new Error('ASTRA_DB_ID is required');
     }
 
-    if (!this.ASTRA_DB_KEYSPACE.length) {
+    if (!this.ASTRA_DB_KEYSPACE?.length) {
       throw new Error('ASTRA_DB_KEYSPACE is required');
     }
 
-    if (!this.AMQP_URL.length) {
+    if (!this.AMQP_URL?.length) {
       throw new Error('AMQP_URL is required');
     }
 
-    if (!this.AMQP_EVENT_QUEUE.length) {
+    if (!this.AMQP_EVENT_QUEUE?.length) {
       throw new Error('AMQP_EVENT_QUEUE is required');
+    }
+
+    if (!this.AMQP_RESULT_EXCHANGE?.length) {
+      throw new Error('AMQP_FANOUT_EXCHANGE is required');
+    }
+
+    if (!this.AMQP_EVENT_EXCHANGE?.length) {
+      throw new Error('AMQP_EVENT_EXCHANGE is required');
+    }
+
+    if (!this.AMQP_EVENT_EXCHANGE_TYPE?.length) {
+      throw new Error('AMQP_EVENT_EXCHANGE_TYPE is required');
+    }
+
+    if (!this.AMQP_RESULT_EXCHANGE_TYPE?.length) {
+      throw new Error('AMQP_RESULT_EXCHANGE_TYPE is required');
     }
   }
 }
