@@ -1,22 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { EventBroker } from '@infra/brokers/event.broker';
+import { AmqpBroker } from '@root/infra/brokers/amqp.broker';
 import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
-import { EVENT_BROKER_TOKEN } from '@root/tokens';
+import { MESSAGE_BROKER_TOKEN } from '@root/tokens';
 import { AmqpClient } from '@infra/clients/amqp.client';
 
 describe('EventsBroker', () => {
-  let service: EventBroker;
+  let service: AmqpBroker;
 
   let client: AmqpClient;
 
   const expected = {
-    currentSceneId: 'scene1',
-    event: 'PICK',
+    category: 'INVENTORY',
+    action: 'UNEQUIP',
     actorId: 'actor1',
-    targetId: 'chest1',
-    itemId: 'sword1',
   };
 
   beforeAll(async () => {
@@ -24,13 +22,21 @@ describe('EventsBroker', () => {
       imports: [HelpersModule, InfraModule],
     }).compile();
 
-    service = module.get(EVENT_BROKER_TOKEN);
+    service = module.get(MESSAGE_BROKER_TOKEN);
 
     client = module.get(AmqpClient);
 
-    await service.produce(Buffer.from(JSON.stringify(expected)));
+    await service.onModuleInit();
 
-    await service.consume();
+    await service.publish(
+      Buffer.from(
+        JSON.stringify({
+          category: 'INVENTORY',
+          action: 'UNEQUIP',
+          actorId: 'actor1',
+        }),
+      ),
+    );
   });
 
   afterAll(async () => {

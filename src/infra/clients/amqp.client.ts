@@ -2,7 +2,7 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 
 import { connect, Channel, Connection, ConsumeMessage } from 'amqplib';
 
-import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
+import { EventMessage } from '@messages/event.message';
 
 interface Channels {
   [key: string]: Channel;
@@ -10,15 +10,11 @@ interface Channels {
 
 @Injectable()
 export class AmqpClient implements OnModuleDestroy {
-  private readonly address: string;
-
   private readonly channels: Channels;
 
   private connection: Connection | null;
 
-  constructor(private readonly configValuesHelper: ConfigValuesHelper) {
-    this.address = `${this.configValuesHelper.AMQP_URL}`;
-
+  constructor() {
     this.channels = {};
 
     this.connection = null;
@@ -28,26 +24,27 @@ export class AmqpClient implements OnModuleDestroy {
     await this.connection?.close();
   }
 
-  public async produce(
+  public async consume<T extends EventMessage>(
+    address: string,
     channelName: string,
-    queue: string,
-    content: Buffer,
-  ): Promise<boolean> {
-    const channel = await this.channel(channelName);
-
-    await channel.assertQueue(queue);
-
-    return channel.sendToQueue(queue, content);
-  }
-
-  public async consume<T>(
-    channelName: string,
+    exchange: string,
+    exchangeType: string,
     queue: string,
     f: (eventMessage: T) => void,
   ): Promise<string> {
-    const channel = await this.channel(channelName);
+    const channel = await this.channel(channelName, address);
 
-    await channel.assertQueue(queue);
+    await channel.assertExchange(exchange, exchangeType, {
+      durable: false,
+      autoDelete: true,
+    });
+
+    await channel.assertQueue(queue, {
+      exclusive: true,
+      autoDelete: true,
+    });
+
+    await channel.bindQueue(queue, exchange, 'events');
 
     const { consumerTag } = await channel.consume(
       queue,
@@ -65,9 +62,26 @@ export class AmqpClient implements OnModuleDestroy {
     return consumerTag;
   }
 
-  private async channel(name: string): Promise<Channel> {
+  public async publish(
+    address: string,
+    channelName: string,
+    exchange: string,
+    exchangeType: string,
+    content: Buffer,
+  ): Promise<boolean> {
+    const channel = await this.channel(channelName, address);
+
+    await channel.assertExchange(exchange, exchangeType, {
+      durable: false,
+      autoDelete: true,
+    });
+
+    return channel.publish(exchange, '', content);
+  }
+
+  private async channel(name: string, address: string): Promise<Channel> {
     if (!this.connection) {
-      this.connection = await connect(this.address);
+      this.connection = await connect(address);
     }
 
     if (!this.channels[name]) {
