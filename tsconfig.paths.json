@@ -23,8 +23,8 @@
       "@services/*": [
         "src/services/*"
       ],
-      "@resources/*": [
-        "src/resources/*"
+      "@catalogs/*": [
+        "src/catalogs/*"
       ],
       "@errors/*": [
         "src/errors/*"

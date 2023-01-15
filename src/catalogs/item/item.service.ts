@@ -14,9 +14,9 @@ import { ReadableDefinition } from '@definitions/readable.definition';
 @Injectable()
 export class ItemService {
   constructor(
-    private readonly customLoggerHelper: CustomLoggerHelper,
     @Inject(ITEM_CATALOG_STORE_TOKEN)
-    private readonly itemStore: ItemCatalogStoreInterface,
+    private readonly itemCatalogStore: ItemCatalogStoreInterface,
+    private readonly customLoggerHelper: CustomLoggerHelper,
     private readonly diceSetHelper: DiceSetHelper,
   ) {}
 
@@ -29,14 +29,14 @@ export class ItemService {
       throw new ApplicationError('Item with wrong category');
     }
 
-    await this.itemStore.upsertItem(item);
+    await this.itemCatalogStore.upsertItem(item);
   }
 
   async findOne(
     category: string,
     name: string,
   ): Promise<ItemDefinition | null> {
-    const result = await this.itemStore.getItem(category, name);
+    const result = await this.itemCatalogStore.getItem(category, name);
 
     if (result) {
       this.customLoggerHelper.log('Item found', result);
@@ -52,7 +52,7 @@ export class ItemService {
   public async remove(category: string, name: string): Promise<void> {
     this.customLoggerHelper.log('Deleting item', { category, name });
 
-    await this.itemStore.removeItem(category, name);
+    await this.itemCatalogStore.removeItem(category, name);
   }
 
   private createItem(dto: CreateItemDto): ItemDefinition | null {

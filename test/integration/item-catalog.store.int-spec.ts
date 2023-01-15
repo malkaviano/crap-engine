@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
 import { ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
-import { ItemCatalogStore } from '@infra/stores/catalogs/item-catalog.store';
+import { ItemCatalogStore } from '@infra/stores/item-catalog.store';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ReadableDefinition } from '@definitions/readable.definition';
 import { ConsumableDefinition } from '@definitions/consumable.definition';

@@ -6,7 +6,7 @@ import {
   INVENTORY_STORE_TOKEN,
   EVENT_BROKER_TOKEN,
 } from '@root/tokens';
-import { ItemCatalogStore } from '@infra/stores/catalogs/item-catalog.store';
+import { ItemCatalogStore } from '@infra/stores/item-catalog.store';
 import { InventoryStore } from '@infra/stores/inventory.store';
 import { AmqpClient } from '@infra/clients/amqp.client';
 import { EventBroker } from '@infra/brokers/event.broker';

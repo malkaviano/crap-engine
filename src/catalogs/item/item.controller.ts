@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-import { ItemService } from '@resources/item/item.service';
+import { ItemService } from '@catalogs/item/item.service';
 import { CreateItemDto } from '@dtos/create-item.dto';
 import { ItemDefinition } from '@definitions/item.definition';
 import { ApplicationError } from '@errors/application.error';

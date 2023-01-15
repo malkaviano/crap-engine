@@ -1,7 +1,7 @@
 {
   "name": "crap-engine",
   "version": "0.0.1",
-  "description": "A game engine based on RxJS",
+  "description": "A game engine built with RxJS",
   "author": "malkaviano",
   "private": false,
   "license": "MIT",
