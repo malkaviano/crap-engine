@@ -30,6 +30,7 @@ export class AmqpClient implements OnModuleDestroy {
     exchange: string,
     exchangeType: string,
     queue: string,
+    routeKey: string,
     f: (eventMessage: T) => void,
   ): Promise<string> {
     const channel = await this.channel(channelName, address);
@@ -44,7 +45,7 @@ export class AmqpClient implements OnModuleDestroy {
       autoDelete: true,
     });
 
-    await channel.bindQueue(queue, exchange, 'events');
+    await channel.bindQueue(queue, exchange, routeKey);
 
     const { consumerTag } = await channel.consume(
       queue,
@@ -67,6 +68,7 @@ export class AmqpClient implements OnModuleDestroy {
     channelName: string,
     exchange: string,
     exchangeType: string,
+    routeKey: string,
     content: Buffer,
   ): Promise<boolean> {
     const channel = await this.channel(channelName, address);
@@ -76,7 +78,7 @@ export class AmqpClient implements OnModuleDestroy {
       autoDelete: true,
     });
 
-    return channel.publish(exchange, '', content);
+    return channel.publish(exchange, routeKey, content);
   }
 
   private async channel(name: string, address: string): Promise<Channel> {

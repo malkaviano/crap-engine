@@ -60,6 +60,7 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
       this.channelName,
       this.resultExchange,
       this.resultExchangeType,
+      this.configValuesHelper.AMQP_EVENT_ROUTE_KEY,
       content,
     );
   }
@@ -71,6 +72,7 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
       this.eventExchange,
       this.eventExchangeType,
       this.eventQueue,
+      this.configValuesHelper.AMQP_RESULT_ROUTE_KEY,
       (eventMessage: EventMessage) => {
         this.eventMessageReceived.next(eventMessage);
       },

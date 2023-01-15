@@ -16,6 +16,8 @@ export class ConfigValuesHelper {
   public readonly AMQP_EVENT_EXCHANGE: string;
   public readonly AMQP_EVENT_EXCHANGE_TYPE: string;
   public readonly AMQP_RESULT_EXCHANGE_TYPE: string;
+  public readonly AMQP_EVENT_ROUTE_KEY: string;
+  public readonly AMQP_RESULT_ROUTE_KEY: string;
 
   constructor() {
     this.BCRYPT_SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '');
@@ -46,6 +48,10 @@ export class ConfigValuesHelper {
 
     this.AMQP_RESULT_EXCHANGE_TYPE =
       process.env.AMQP_RESULT_EXCHANGE_TYPE ?? '';
+
+    this.AMQP_EVENT_ROUTE_KEY = process.env.AMQP_EVENT_ROUTE_KEY ?? '';
+
+    this.AMQP_RESULT_ROUTE_KEY = process.env.AMQP_RESULT_ROUTE_KEY ?? '';
 
     this.validate();
   }
@@ -105,6 +111,14 @@ export class ConfigValuesHelper {
 
     if (!this.AMQP_RESULT_EXCHANGE_TYPE?.length) {
       throw new Error('AMQP_RESULT_EXCHANGE_TYPE is required');
+    }
+
+    if (!this.AMQP_EVENT_ROUTE_KEY?.length) {
+      throw new Error('AMQP_EVENT_ROUTE_KEY is required');
+    }
+
+    if (!this.AMQP_RESULT_ROUTE_KEY?.length) {
+      throw new Error('AMQP_RESULT_ROUTE_KEY is required');
     }
   }
 }
