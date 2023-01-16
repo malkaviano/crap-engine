@@ -6,13 +6,11 @@ import { InventoryStoreInterface } from '@interfaces/stores/inventory-store.inte
 import { AstraClient } from '@root/infra/clients/astra.client';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
-import { InfraError } from '@errors/infra.error';
 import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { ConverterHelper } from '@helpers/converter.helper.service';
 import { ConsumableEntity } from '@entities/consumable.entity';
 import { ReadableEntity } from '@entities/readable.entity';
-import { ErrorSignals } from '@root/signals/error-signals';
 
 @Injectable()
 export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
@@ -27,7 +25,6 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
   constructor(
     private readonly astraClient: AstraClient,
     private readonly configValuesHelper: ConfigValuesHelper,
-    private readonly logger: CustomLoggerHelper,
     private readonly converterHelperService: ConverterHelper,
   ) {
     const fields = ['interactive_id', 'item_id', 'item_payload'].join(',');
