@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { map, mergeMap } from 'rxjs';
+
 import { InventoryStore } from '@root/infra/stores/inventory.store';
 import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
@@ -24,41 +26,57 @@ describe('InventoryStore', () => {
     expect(service).toBeDefined();
   });
 
-  it('should execute inventory actions', async () => {
-    await service.remove('actor1');
-
-    await service.remove('actor2');
-
-    let op = await service.drop('actor1', knifeEntity.id);
-
-    expect(op).toEqual(false);
-
-    op = await service.store('actor1', swordEntity);
-
-    expect(op).toEqual(true);
-
-    let item = await service.look('actor1', swordEntity.id);
-
-    expect(item).toEqual(swordEntity);
-
-    op = await service.store('actor1', knifeEntity);
-
-    expect(op).toEqual(true);
-
-    item = await service.look('actor1', knifeEntity.id);
-
-    expect(item).toEqual(knifeEntity);
-
-    item = await service.look('actor2', swordEntity.id);
-
-    expect(item).toBeNull();
-
-    op = await service.drop('actor1', knifeEntity.id);
-
-    expect(op).toEqual(true);
-
-    item = await service.look('actor1', knifeEntity.id);
-
-    expect(item).toBeNull();
+  it('should execute inventory actions', (done) => {
+    service
+      .remove('actor1')
+      .pipe(
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.remove('actor2')),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.store('actor1', swordEntity)),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.drop('actor1', knifeEntity.id)),
+        map((result) => {
+          expect(result).toEqual(false);
+        }),
+        mergeMap(() => service.look('actor1', swordEntity.id)),
+        map((result) => {
+          expect(result).toEqual(swordEntity);
+        }),
+        mergeMap(() => service.store('actor1', knifeEntity)),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.look('actor1', knifeEntity.id)),
+        map((result) => {
+          expect(result).toEqual(knifeEntity);
+        }),
+        mergeMap(() => service.look('actor2', swordEntity.id)),
+        map((result) => {
+          expect(result).toBeNull();
+        }),
+        mergeMap(() => service.drop('actor1', knifeEntity.id)),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.look('actor1', knifeEntity.id)),
+        map((result) => {
+          expect(result).toBeNull();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          done();
+        },
+        error: () => {
+          done.fail();
+        },
+      });
   });
 });

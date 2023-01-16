@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { map, mergeMap } from 'rxjs';
+
 import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
 import { ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
@@ -27,53 +29,121 @@ describe('ItemCatalogStore', () => {
     expect(service).toBeDefined();
   });
 
-  it('should store and retrieve items', async () => {
-    await service.save(sword);
-
-    await service.save(firstAidKit);
-
-    await service.save(friendNote);
-
-    let result1 = await service.getItem<WeaponDefinition>(
-      sword.category,
-      sword.info.name,
-    );
-
-    let result2 = await service.getItem<ReadableDefinition>(
-      friendNote.category,
-      friendNote.info.name,
-    );
-
-    let result3 = await service.getItem<ConsumableDefinition>(
-      firstAidKit.category,
-      firstAidKit.info.name,
-    );
-
-    expect(result1).toEqual(sword);
-
-    expect(result2).toEqual(friendNote);
-
-    expect(result3).toEqual(firstAidKit);
-
-    await service.removeItem(sword.category, sword.info.name);
-
-    await service.removeItem(friendNote.category, friendNote.info.name);
-
-    await service.removeItem(firstAidKit.category, firstAidKit.info.name);
-
-    result1 = await service.getItem(sword.category, sword.info.name);
-
-    result2 = await service.getItem(friendNote.category, friendNote.info.name);
-
-    result3 = await service.getItem(
-      firstAidKit.category,
-      firstAidKit.info.name,
-    );
-
-    expect(result1).toBeNull();
-
-    expect(result2).toBeNull();
-
-    expect(result3).toBeNull();
+  it('should store and retrieve items', (done) => {
+    service
+      .save(sword)
+      .pipe(
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.save(firstAidKit)),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.save(friendNote)),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.save(sword)),
+        map((result) => {
+          expect(result).toEqual(false);
+        }),
+        mergeMap(() => service.save(firstAidKit)),
+        map((result) => {
+          expect(result).toEqual(false);
+        }),
+        mergeMap(() => service.save(friendNote)),
+        map((result) => {
+          expect(result).toEqual(false);
+        }),
+        mergeMap(() =>
+          service.getItem<WeaponDefinition>(sword.category, sword.info.name),
+        ),
+        map((result) => {
+          expect(result).toEqual(sword);
+        }),
+        mergeMap(() =>
+          service.getItem<ReadableDefinition>(
+            friendNote.category,
+            friendNote.info.name,
+          ),
+        ),
+        map((result) => {
+          expect(result).toEqual(friendNote);
+        }),
+        mergeMap(() =>
+          service.getItem<ConsumableDefinition>(
+            firstAidKit.category,
+            firstAidKit.info.name,
+          ),
+        ),
+        map((result) => {
+          expect(result).toEqual(firstAidKit);
+        }),
+        mergeMap(() => service.removeItem(sword.category, sword.info.name)),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() =>
+          service.removeItem(friendNote.category, friendNote.info.name),
+        ),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() =>
+          service.removeItem(firstAidKit.category, firstAidKit.info.name),
+        ),
+        map((result) => {
+          expect(result).toEqual(true);
+        }),
+        mergeMap(() => service.removeItem(sword.category, sword.info.name)),
+        map((result) => {
+          expect(result).toEqual(false);
+        }),
+        mergeMap(() =>
+          service.removeItem(friendNote.category, friendNote.info.name),
+        ),
+        map((result) => {
+          expect(result).toEqual(false);
+        }),
+        mergeMap(() =>
+          service.removeItem(firstAidKit.category, firstAidKit.info.name),
+        ),
+        map((result) => {
+          expect(result).toEqual(false);
+        }),
+        mergeMap(() =>
+          service.getItem<WeaponDefinition>(sword.category, sword.info.name),
+        ),
+        map((result) => {
+          expect(result).toBeNull();
+        }),
+        mergeMap(() =>
+          service.getItem<ReadableDefinition>(
+            friendNote.category,
+            friendNote.info.name,
+          ),
+        ),
+        map((result) => {
+          expect(result).toBeNull();
+        }),
+        mergeMap(() =>
+          service.getItem<ConsumableDefinition>(
+            firstAidKit.category,
+            firstAidKit.info.name,
+          ),
+        ),
+        map((result) => {
+          expect(result).toBeNull();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          done();
+        },
+        error: () => {
+          done.fail();
+        },
+      });
   });
 });
