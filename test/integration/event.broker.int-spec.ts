@@ -48,7 +48,7 @@ describe('EventsBroker', () => {
   });
 
   it('should consume event messages', (done) => {
-    service.eventMessageReceived$.subscribe((event) => {
+    service.eventMessageConsumed$.subscribe((event) => {
       done();
 
       expect(event).toEqual(expected);

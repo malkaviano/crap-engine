@@ -142,7 +142,7 @@ describe('ItemCatalogStore', () => {
           done();
         },
         error: () => {
-          done.fail();
+          done('fail');
         },
       });
   });

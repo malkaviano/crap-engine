@@ -64,6 +64,9 @@ describe('InventoryService', () => {
         );
 
         service.spawn('actorId1', 'WEAPON', 'itemId1').subscribe({
+          next: () => {
+            done('fail');
+          },
           error: (result) => {
             done();
 
@@ -88,6 +91,9 @@ describe('InventoryService', () => {
         ).thenReturn(of(false));
 
         service.spawn('actorId1', sword.category, sword.info.name).subscribe({
+          next: () => {
+            done('fail');
+          },
           error: (result) => {
             done();
 
@@ -125,13 +131,16 @@ describe('InventoryService', () => {
             mockedInventoryStore.store('actorId1', deepEqual(entity)),
           ).thenReturn(of(true));
 
-          service
-            .spawn('actorId1', item.category, item.info.name)
-            .subscribe((result) => {
+          service.spawn('actorId1', item.category, item.info.name).subscribe({
+            next: (result) => {
               done();
 
               expect(result).toEqual(entity.id);
-            });
+            },
+            error: () => {
+              done('fail');
+            },
+          });
         });
       });
     });
@@ -142,10 +151,15 @@ describe('InventoryService', () => {
       it(`return ITEM_LOST`, (done) => {
         when(mockedInventoryStore.drop('actor1', 'item1')).thenReturn(of(true));
 
-        service.dispose('actor1', 'item1').subscribe((result) => {
-          done();
+        service.drop('actor1', 'item1').subscribe({
+          next: (result) => {
+            done();
 
-          expect(result).toEqual(StatusSignals.ITEM_LOST);
+            expect(result).toEqual(StatusSignals.ITEM_LOST);
+          },
+          error: () => {
+            done('fail');
+          },
         });
       });
     });
@@ -156,7 +170,10 @@ describe('InventoryService', () => {
           of(false),
         );
 
-        service.dispose('actor1', 'item1').subscribe({
+        service.drop('actor1', 'item1').subscribe({
+          next: () => {
+            done('fail');
+          },
           error: (result) => {
             done();
 
@@ -177,6 +194,9 @@ describe('InventoryService', () => {
         );
 
         service.look('actor1', 'sword1').subscribe({
+          next: () => {
+            done('fail');
+          },
           error: (result) => {
             done();
 
@@ -200,6 +220,9 @@ describe('InventoryService', () => {
 
             expect(result).toEqual(swordEntity);
           },
+          error: () => {
+            done('fail');
+          },
         });
       });
     });
@@ -209,10 +232,15 @@ describe('InventoryService', () => {
     it('return INVENTORY_ERASED', (done) => {
       when(mockedInventoryStore.remove('actor1')).thenReturn(of(true));
 
-      service.erase('actor1').subscribe((result) => {
-        done();
+      service.erase('actor1').subscribe({
+        next: (result) => {
+          done();
 
-        expect(result).toEqual(StatusSignals.INVENTORY_ERASED);
+          expect(result).toEqual(StatusSignals.INVENTORY_ERASED);
+        },
+        error: () => {
+          done('fail');
+        },
       });
     });
   });
@@ -225,6 +253,9 @@ describe('InventoryService', () => {
         );
 
         service.loot('actor2', 'chest1', swordEntity.id).subscribe({
+          next: () => {
+            done('fail');
+          },
           error: (result) => {
             done();
 
@@ -237,7 +268,7 @@ describe('InventoryService', () => {
     });
 
     describe('item was already looted', () => {
-      it('throw LOOTED_BY_OTHER', (done) => {
+      it('throw ITEM_NOT_FOUND', (done) => {
         when(mockedInventoryStore.look('chest1', swordEntity.id)).thenReturn(
           of(swordEntity),
         );
@@ -247,11 +278,14 @@ describe('InventoryService', () => {
         );
 
         service.loot('actor2', 'chest1', swordEntity.id).subscribe({
+          next: () => {
+            done('fail');
+          },
           error: (result) => {
             done();
 
             expect(result).toEqual(
-              new ApplicationError(ErrorSignals.LOOTED_BY_OTHER, 400),
+              new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 400),
             );
           },
         });
@@ -285,7 +319,7 @@ describe('InventoryService', () => {
     });
 
     describe('item was looted', () => {
-      it('return ITEM_LOOTED', (done) => {
+      it('return item', (done) => {
         when(mockedInventoryStore.look('chest1', swordEntity.id)).thenReturn(
           of(swordEntity),
         );
@@ -301,7 +335,47 @@ describe('InventoryService', () => {
         service.loot('actor2', 'chest1', swordEntity.id).subscribe((result) => {
           done();
 
-          expect(result).toEqual(StatusSignals.ITEM_LOOTED);
+          expect(result).toEqual(swordEntity);
+        });
+      });
+    });
+  });
+
+  describe('store', () => {
+    describe('when item was duplicated', () => {
+      it('throw DUPLICATED_ITEM', (done) => {
+        when(
+          mockedInventoryStore.store('actor1', deepEqual(swordEntity)),
+        ).thenReturn(of(false));
+
+        service.store('actor1', swordEntity).subscribe({
+          next: () => done.fail(),
+          error: (result) => {
+            done();
+
+            expect(result).toEqual(
+              new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 400),
+            );
+          },
+        });
+      });
+    });
+
+    describe('when item was stored', () => {
+      it('return item', (done) => {
+        when(mockedInventoryStore.store('actor1', swordEntity)).thenReturn(
+          of(true),
+        );
+
+        service.store('actor1', swordEntity).subscribe({
+          next: (result) => {
+            done();
+
+            expect(result).toEqual(StatusSignals.ITEM_STORED);
+          },
+          error: () => {
+            done('fail');
+          },
         });
       });
     });

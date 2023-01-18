@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 
 import { EquipRuleService } from '@rules/equip.rule.service';
+import { RuleDispatcherService } from '@rules/rule-dispatcher.service';
+import { ServicesModule } from '@services/services.module';
+import { LootRuleService } from '@rules/loot.rule.service';
 
 @Module({
-  providers: [EquipRuleService],
-  exports: [EquipRuleService],
+  imports: [ServicesModule],
+  providers: [EquipRuleService, RuleDispatcherService, LootRuleService],
+  exports: [RuleDispatcherService],
 })
 export class RulesModule {}

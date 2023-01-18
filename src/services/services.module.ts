@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 
-import { EventHubService } from '@services/event-hub.service';
-import { InventoryService } from './inventory.service';
+import { ItemService } from '@catalogs/item/item.service';
+import { InventoryService } from '@services/inventory.service';
 
 @Module({
-  providers: [EventHubService, InventoryService],
-  exports: [EventHubService, InventoryService],
+  providers: [ItemService, InventoryService],
+  exports: [ItemService, InventoryService],
 })
 export class ServicesModule {}

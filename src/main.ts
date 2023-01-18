@@ -1,4 +1,4 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
@@ -7,8 +7,8 @@ import helmet from 'helmet';
 
 import { AppModule } from '@root/app.module';
 import { ApplicationExceptionFilter } from '@filters/application-exception.filter';
-import { DateTimeHelper } from '@helpers/date-time.helper.service';
-import { CustomLoggerHelper } from './helpers/custom-logger.helper.service';
+import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
+import { RuleDispatcherService } from '@rules/rule-dispatcher.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,9 +23,9 @@ async function bootstrap() {
     }),
   );
 
-  const cl = app.get(CustomLoggerHelper);
+  const logger = app.get(CustomLoggerHelper);
 
-  app.useGlobalFilters(new ApplicationExceptionFilter(cl));
+  app.useGlobalFilters(new ApplicationExceptionFilter(logger));
 
   const config = new DocumentBuilder()
     .setTitle('CrapEngine')
@@ -42,9 +42,15 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  const logger = new Logger();
+  logger.log(`Server started on port ${port}`);
 
-  cl.log(`Server started on port ${port}`);
+  listenPlayers(app);
 }
 
 bootstrap();
+
+function listenPlayers(app: INestApplication) {
+  const dispatcher = app.get(RuleDispatcherService);
+
+  dispatcher.listen();
+}

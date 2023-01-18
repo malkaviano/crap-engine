@@ -75,7 +75,7 @@ describe('InventoryStore', () => {
           done();
         },
         error: () => {
-          done.fail();
+          done('fail');
         },
       });
   });

@@ -40,7 +40,7 @@ export class ItemService {
       }),
       map((result) => {
         if (!result) {
-          throw new ApplicationError(ErrorSignals.ITEM_ALREADY_EXISTS, 400);
+          throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 400);
         }
 
         this.customLoggerHelper.log('Created item', dto);

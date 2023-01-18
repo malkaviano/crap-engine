@@ -155,7 +155,7 @@ describe('ItemService', () => {
     });
 
     describe('when item exists', () => {
-      it('throw ITEM_ALREADY_EXISTS', (done) => {
+      it('throw DUPLICATED_ITEM', (done) => {
         const item = {
           category: 'CONSUMABLE',
           name: 'firstAidKit',
@@ -179,7 +179,7 @@ describe('ItemService', () => {
             done();
 
             expect(result).toEqual(
-              new ApplicationError(ErrorSignals.ITEM_ALREADY_EXISTS, 400),
+              new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 400),
             );
           },
         });

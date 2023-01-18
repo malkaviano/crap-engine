@@ -1,11 +1,12 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
-import { Observable, Subject } from 'rxjs';
+import { mergeMap, Observable, share, Subject } from 'rxjs';
 
 import { AmqpClient } from '@infra/clients/amqp.client';
 import { EventMessage } from '@messages/event.message';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
 import { MessageBrokerInterface } from '@interfaces/message-broker.interface';
+import { ResultMessage } from '@messages/result.message';
 
 @Injectable()
 export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
@@ -27,9 +28,9 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
 
   private readonly resultRouteKey: string;
 
-  private readonly eventMessageReceived: Subject<EventMessage>;
+  private readonly eventMessageConsumed: Subject<EventMessage>;
 
-  public readonly eventMessageReceived$: Observable<EventMessage>;
+  public readonly eventMessageConsumed$: Observable<EventMessage>;
 
   constructor(
     private readonly configValuesHelper: ConfigValuesHelper,
@@ -53,9 +54,9 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
 
     this.channelName = AmqpBroker.name;
 
-    this.eventMessageReceived = new Subject();
+    this.eventMessageConsumed = new Subject();
 
-    this.eventMessageReceived$ = this.eventMessageReceived.asObservable();
+    this.eventMessageConsumed$ = this.eventMessageConsumed.pipe(share());
   }
 
   public async onModuleInit(): Promise<void> {
@@ -82,7 +83,7 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
       this.eventQueue,
       this.eventRouteKey,
       (eventMessage: EventMessage) => {
-        this.eventMessageReceived.next(eventMessage);
+        this.eventMessageConsumed.next(eventMessage);
       },
     );
 

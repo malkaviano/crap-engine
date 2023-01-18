@@ -41,7 +41,7 @@ export class InventoryService {
     );
   }
 
-  public dispose(actorId: string, itemId: string): Observable<string> {
+  public drop(actorId: string, itemId: string): Observable<string> {
     return this.inventoryStore.drop(actorId, itemId).pipe(
       map((result) => {
         if (!result) {
@@ -53,39 +53,40 @@ export class InventoryService {
     );
   }
 
+  public store(
+    interactiveId: string,
+    item: ItemEntityInterface,
+  ): Observable<string> {
+    return this.inventoryStore.store(interactiveId, item).pipe(
+      map((item) => {
+        if (!item) {
+          throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 404);
+        }
+
+        return StatusSignals.ITEM_STORED;
+      }),
+    );
+  }
+
   public loot(
     looterId: string,
     containerId: string,
     itemId: string,
-  ): Observable<string> {
-    return this.inventoryStore.look(containerId, itemId).pipe(
-      map((entity) => {
-        if (!entity) {
-          throw new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404);
-        }
-
-        return entity;
-      }),
+  ): Observable<ItemEntityInterface> {
+    return this.look(containerId, itemId).pipe(
       mergeMap((entity) => {
-        return this.inventoryStore.drop(containerId, itemId).pipe(
+        return this.drop(containerId, itemId).pipe(
           map((result) => {
             return { result, entity };
           }),
         );
       }),
-      mergeMap(({ result, entity }) => {
-        if (!result) {
-          throw new ApplicationError(ErrorSignals.LOOTED_BY_OTHER, 400);
-        }
-
-        return this.inventoryStore.store(looterId, entity);
-      }),
-      map((result) => {
-        if (!result) {
-          throw new ApplicationError(ErrorSignals.DUPLICATED_ITEM, 400);
-        }
-
-        return StatusSignals.ITEM_LOOTED;
+      mergeMap(({ entity }) => {
+        return this.store(looterId, entity).pipe(
+          map(() => {
+            return entity;
+          }),
+        );
       }),
     );
   }
