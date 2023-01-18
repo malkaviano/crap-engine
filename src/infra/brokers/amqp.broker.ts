@@ -23,6 +23,10 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
 
   private readonly eventExchangeType: string;
 
+  private readonly eventRouteKey: string;
+
+  private readonly resultRouteKey: string;
+
   private readonly eventMessageReceived: Subject<EventMessage>;
 
   public readonly eventMessageReceived$: Observable<EventMessage>;
@@ -43,6 +47,10 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
 
     this.eventExchangeType = this.configValuesHelper.AMQP_EVENT_EXCHANGE_TYPE;
 
+    this.eventRouteKey = this.configValuesHelper.AMQP_EVENT_ROUTE_KEY;
+
+    this.resultRouteKey = this.configValuesHelper.AMQP_RESULT_ROUTE_KEY;
+
     this.channelName = AmqpBroker.name;
 
     this.eventMessageReceived = new Subject();
@@ -60,7 +68,7 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
       this.channelName,
       this.resultExchange,
       this.resultExchangeType,
-      this.configValuesHelper.AMQP_EVENT_ROUTE_KEY,
+      this.resultRouteKey,
       content,
     );
   }
@@ -72,7 +80,7 @@ export class AmqpBroker implements MessageBrokerInterface, OnModuleInit {
       this.eventExchange,
       this.eventExchangeType,
       this.eventQueue,
-      this.configValuesHelper.AMQP_RESULT_ROUTE_KEY,
+      this.eventRouteKey,
       (eventMessage: EventMessage) => {
         this.eventMessageReceived.next(eventMessage);
       },
