@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { EventHubService } from '@services/event-hub.service';
 
+import { resetMocked } from '../shared-mocks';
+
 describe('EventHubService', () => {
   let service: EventHubService<string>;
 
@@ -9,6 +11,8 @@ describe('EventHubService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [EventHubService],
     }).compile();
+
+    resetMocked();
 
     service = module.get<EventHubService<string>>(EventHubService);
   });

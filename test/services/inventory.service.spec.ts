@@ -20,7 +20,7 @@ import {
   sword,
   swordEntity,
 } from '../fakes';
-import { mockedGeneratorHelper } from '../shared-mocks';
+import { mockedGeneratorHelper, resetMocked } from '../shared-mocks';
 
 describe('InventoryService', () => {
   let service: InventoryService;
@@ -47,6 +47,8 @@ describe('InventoryService', () => {
       ],
     }).compile();
 
+    resetMocked();
+
     service = module.get<InventoryService>(InventoryService);
   });
 
@@ -57,13 +59,15 @@ describe('InventoryService', () => {
   describe('spawnItem', () => {
     describe('when item did not exist in catalog', () => {
       it('throw ITEM_NOT_FOUND', (done) => {
-        when(mockedItemService.findOne('WEAPON', 'itemId1')).thenReturn(
+        when(
+          mockedItemService.findOne(sword.category, sword.info.name),
+        ).thenReturn(
           throwError(
             () => new ApplicationError(ErrorSignals.ITEM_NOT_FOUND, 404),
           ),
         );
 
-        service.spawn('actorId1', 'WEAPON', 'itemId1').subscribe({
+        service.spawn('actorId1', sword.category, sword.info.name).subscribe({
           next: () => {
             done('fail');
           },
@@ -80,9 +84,9 @@ describe('InventoryService', () => {
 
     describe('when item was duplicated', () => {
       it('throw DUPLICATED_ITEM', (done) => {
-        when(mockedItemService.findOne('WEAPON', sword.info.name)).thenReturn(
-          of(sword),
-        );
+        when(
+          mockedItemService.findOne(sword.category, sword.info.name),
+        ).thenReturn(of(sword));
 
         when(mockedGeneratorHelper.newId()).thenReturn('sword1');
 
