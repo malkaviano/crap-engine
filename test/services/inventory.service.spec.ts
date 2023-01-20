@@ -228,23 +228,6 @@ describe('InventoryService', () => {
     });
   });
 
-  describe('erase', () => {
-    it('return INVENTORY_ERASED', (done) => {
-      when(mockedInventoryStore.remove('actor1')).thenReturn(of(true));
-
-      service.erase('actor1').subscribe({
-        next: (result) => {
-          done();
-
-          expect(result).toEqual(StatusSignals.INVENTORY_ERASED);
-        },
-        error: () => {
-          done('fail');
-        },
-      });
-    });
-  });
-
   describe('lootItem', () => {
     describe('item was not found', () => {
       it('throw ITEM_NOT_FOUND', (done) => {

@@ -158,12 +158,4 @@ export class InventoryService {
       }),
     );
   }
-
-  public erase(actorId: string): Observable<string> {
-    return this.inventoryStore.remove(actorId).pipe(
-      map(() => {
-        return StatusSignals.INVENTORY_ERASED;
-      }),
-    );
-  }
 }
