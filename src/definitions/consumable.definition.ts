@@ -1,15 +1,15 @@
 import { ItemInfoInterface } from '@interfaces/item-info.interface';
-import { ItemDefinition } from '@definitions/item.definition';
+import { ItemDefinitionInterface } from '@interfaces/item-definition.interface';
 
-export class ConsumableDefinition extends ItemDefinition {
+export class ConsumableDefinition implements ItemDefinitionInterface {
+  public readonly category: string = 'CONSUMABLE';
+
   constructor(
-    itemInfo: ItemInfoInterface,
-    usability: string,
-    skillName: string | null,
+    public readonly info: ItemInfoInterface,
+    public readonly usability: string,
+    public readonly skillName: string | null,
     public readonly effectType: string,
     public readonly amount: number,
     public readonly energy: number,
-  ) {
-    super(itemInfo, 'CONSUMABLE', usability, skillName);
-  }
+  ) {}
 }

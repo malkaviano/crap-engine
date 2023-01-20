@@ -1,10 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 
-import { filter, map, mergeMap, Observable, of } from 'rxjs';
+import { map, mergeMap, Observable, of } from 'rxjs';
 
 import { CreateItemDto } from '@dtos/create-item.dto';
 import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
-import { ItemDefinition } from '@definitions/item.definition';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { ITEM_CATALOG_STORE_TOKEN } from '@root/tokens';
@@ -14,6 +13,7 @@ import { ApplicationError } from '@errors/application.error';
 import { ReadableDefinition } from '@definitions/readable.definition';
 import { ErrorSignals } from '@signals/error-signals';
 import { StatusSignals } from '@signals/status-signals';
+import { ItemDefinitionInterface } from '@interfaces/item-definition.interface';
 
 @Injectable()
 export class ItemService {
@@ -52,7 +52,10 @@ export class ItemService {
     return item;
   }
 
-  public findOne(category: string, name: string): Observable<ItemDefinition> {
+  public findOne(
+    category: string,
+    name: string,
+  ): Observable<ItemDefinitionInterface> {
     this.customLoggerHelper.log('Find one', { category, name });
 
     return this.itemCatalogStore.getItem(category, name).pipe(
@@ -84,8 +87,8 @@ export class ItemService {
     return msg;
   }
 
-  private createItem(dto: CreateItemDto): ItemDefinition | null {
-    let item: ItemDefinition | null = null;
+  private createItem(dto: CreateItemDto): ItemDefinitionInterface | null {
+    let item: ItemDefinitionInterface | null = null;
 
     if (dto.category === 'WEAPON' && dto.skillName && dto.weapon) {
       const diceSet = this.diceSetHelper.createSet(dto.weapon.damage.dice);

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { map, mergeMap } from 'rxjs';
+import { concat, concatMap, map, mergeMap, of, take } from 'rxjs';
 
 import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
@@ -30,118 +30,105 @@ describe('ItemCatalogStore', () => {
   });
 
   it('should store and retrieve items', (done) => {
-    service
-      .save(sword)
+    of(sword, firstAidKit, friendNote)
       .pipe(
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() => service.save(firstAidKit)),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() => service.save(friendNote)),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() => service.save(sword)),
-        map((result) => {
-          expect(result).toEqual(false);
-        }),
-        mergeMap(() => service.save(firstAidKit)),
-        map((result) => {
-          expect(result).toEqual(false);
-        }),
-        mergeMap(() => service.save(friendNote)),
-        map((result) => {
-          expect(result).toEqual(false);
-        }),
-        mergeMap(() =>
-          service.getItem<WeaponDefinition>(sword.category, sword.info.name),
-        ),
-        map((result) => {
-          expect(result).toEqual(sword);
-        }),
-        mergeMap(() =>
-          service.getItem<ReadableDefinition>(
-            friendNote.category,
-            friendNote.info.name,
+        concatMap((item) =>
+          service.save(item).pipe(
+            map((result) => {
+              return {
+                result,
+                item,
+              };
+            }),
           ),
         ),
-        map((result) => {
-          expect(result).toEqual(friendNote);
+        map(({ result, item }) => {
+          expect(result).toEqual(true);
+
+          return item;
         }),
-        mergeMap(() =>
-          service.getItem<ConsumableDefinition>(
-            firstAidKit.category,
-            firstAidKit.info.name,
+        concatMap((item) =>
+          service.save(item).pipe(
+            map((result) => {
+              return {
+                result,
+                item,
+              };
+            }),
           ),
         ),
-        map((result) => {
-          expect(result).toEqual(firstAidKit);
-        }),
-        mergeMap(() => service.removeItem(sword.category, sword.info.name)),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() =>
-          service.removeItem(friendNote.category, friendNote.info.name),
-        ),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() =>
-          service.removeItem(firstAidKit.category, firstAidKit.info.name),
-        ),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() => service.removeItem(sword.category, sword.info.name)),
-        map((result) => {
+        map(({ result, item }) => {
           expect(result).toEqual(false);
+
+          return item;
         }),
-        mergeMap(() =>
-          service.removeItem(friendNote.category, friendNote.info.name),
+        concatMap((item) =>
+          service.getItem(item.category, item.info.name).pipe(
+            map((result) => {
+              return {
+                result,
+                item,
+              };
+            }),
+          ),
         ),
-        map((result) => {
+        map(({ result, item }) => {
+          expect(result).toEqual(item);
+
+          return item;
+        }),
+        concatMap((item) =>
+          service.removeItem(item.category, item.info.name).pipe(
+            map((result) => {
+              return {
+                result,
+                item,
+              };
+            }),
+          ),
+        ),
+        map(({ result, item }) => {
+          expect(result).toEqual(true);
+
+          return item;
+        }),
+        concatMap((item) =>
+          service.removeItem(item.category, item.info.name).pipe(
+            map((result) => {
+              return {
+                result,
+                item,
+              };
+            }),
+          ),
+        ),
+        map(({ result, item }) => {
           expect(result).toEqual(false);
+
+          return item;
         }),
-        mergeMap(() =>
-          service.removeItem(firstAidKit.category, firstAidKit.info.name),
+        concatMap((item) =>
+          service.getItem(item.category, item.info.name).pipe(
+            map((result) => {
+              return {
+                result,
+                item,
+              };
+            }),
+          ),
         ),
-        map((result) => {
-          expect(result).toEqual(false);
-        }),
-        mergeMap(() =>
-          service.getItem<WeaponDefinition>(sword.category, sword.info.name),
-        ),
-        map((result) => {
+        map(({ result, item }) => {
           expect(result).toBeNull();
-        }),
-        mergeMap(() =>
-          service.getItem<ReadableDefinition>(
-            friendNote.category,
-            friendNote.info.name,
-          ),
-        ),
-        map((result) => {
-          expect(result).toBeNull();
-        }),
-        mergeMap(() =>
-          service.getItem<ConsumableDefinition>(
-            firstAidKit.category,
-            firstAidKit.info.name,
-          ),
-        ),
-        map((result) => {
-          expect(result).toBeNull();
+
+          return item;
         }),
       )
       .subscribe({
         next: () => {
           done();
         },
-        error: () => {
+        error: (err) => {
+          console.log(err);
           done('fail');
         },
       });

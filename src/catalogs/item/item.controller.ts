@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 
 import { ItemService } from '@catalogs/item/item.service';
 import { CreateItemDto } from '@dtos/create-item.dto';
-import { ItemDefinition } from '@definitions/item.definition';
+import { ItemDefinitionInterface } from '@interfaces/item-definition.interface';
 
 @ApiBearerAuth()
 @Controller('catalogs/item')
@@ -21,7 +21,7 @@ export class ItemController {
   findOne(
     @Param('category') category: string,
     @Param('name') name: string,
-  ): Observable<ItemDefinition> {
+  ): Observable<ItemDefinitionInterface> {
     return this.itemService.findOne(category, name);
   }
 

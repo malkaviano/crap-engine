@@ -1,5 +1,5 @@
-import { ItemDefinition } from '@definitions/item.definition';
+import { ItemDefinitionInterface } from '@interfaces/item-definition.interface';
 
-export type ItemEntityInterface = {
+export interface ItemEntityInterface extends ItemDefinitionInterface {
   readonly id: string;
-} & ItemDefinition;
+}

@@ -2,14 +2,14 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import { defer, from, map, Observable } from 'rxjs';
 
-import { AstraClient } from '@root/infra/clients/astra.client';
+import { AstraClient } from '@infra/clients/astra.client';
 import { ItemCatalogStoreInterface } from '@interfaces/stores/item-catalog-store.interface';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
-import { ItemDefinition } from '@definitions/item.definition';
 import { ConverterHelper } from '@helpers/converter.helper.service';
 import { WeaponDefinition } from '@definitions/weapon.definition';
 import { ConsumableDefinition } from '@definitions/consumable.definition';
 import { ReadableDefinition } from '@definitions/readable.definition';
+import { ItemDefinitionInterface } from '@interfaces/item-definition.interface';
 
 @Injectable()
 export class ItemCatalogStore
@@ -75,7 +75,7 @@ export class ItemCatalogStore
     );
   }
 
-  public save(item: ItemDefinition): Observable<boolean> {
+  public save(item: ItemDefinitionInterface): Observable<boolean> {
     return defer(() =>
       from(
         this.astraClient.executeStmt(this.insertStmt, [

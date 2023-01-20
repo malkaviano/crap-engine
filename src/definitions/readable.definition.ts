@@ -1,14 +1,14 @@
 import { ItemInfoInterface } from '@interfaces/item-info.interface';
-import { ItemDefinition } from '@definitions/item.definition';
+import { ItemDefinitionInterface } from '@interfaces/item-definition.interface';
 
-export class ReadableDefinition extends ItemDefinition {
+export class ReadableDefinition implements ItemDefinitionInterface {
+  public readonly category = 'READABLE';
+
   constructor(
-    itemInfo: ItemInfoInterface,
-    usability: string,
-    skillName: string | null,
+    public readonly info: ItemInfoInterface,
+    public readonly usability: string,
+    public readonly skillName: string | null,
     public readonly title: string,
     public readonly paragraphs: string[],
-  ) {
-    super(itemInfo, 'READABLE', usability, skillName);
-  }
+  ) {}
 }
