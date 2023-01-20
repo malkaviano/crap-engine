@@ -111,9 +111,7 @@ export class ItemCatalogStore
   >(values: (string | number | boolean | null)[][]) {
     return values
       .map((v) => {
-        return this.converterHelperService.inflateItemDefinition<T>(
-          v[0] as string,
-        );
+        return this.converterHelperService.inflate<T>(v[0] as string);
       })
       .filter((element): element is T => {
         return element !== null;

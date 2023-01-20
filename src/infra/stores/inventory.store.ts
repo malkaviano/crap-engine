@@ -93,9 +93,7 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     ).pipe(
       map((values) => {
         if (values.length) {
-          return this.converterHelperService.inflateItemEntity<T>(
-            values[0][2] as string,
-          );
+          return this.converterHelperService.inflate<T>(values[0][2] as string);
         }
 
         return null;
