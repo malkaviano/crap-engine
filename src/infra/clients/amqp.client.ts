@@ -52,10 +52,10 @@ export class AmqpClient implements OnModuleDestroy {
       queue,
       (msg: ConsumeMessage | null) => {
         if (msg) {
-          const obj = this.converterHelper.inflate<T>(msg.content.toString());
+          const obj = this.converterHelper.inflate(msg.content.toString());
 
           if (obj) {
-            f(obj);
+            f(obj as T);
           }
 
           channel.ack(msg);

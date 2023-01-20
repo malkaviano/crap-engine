@@ -108,10 +108,10 @@ export class ItemCatalogStore
 
   private allItems<
     T extends WeaponDefinition | ConsumableDefinition | ReadableDefinition,
-  >(values: (string | number | boolean | null)[][]) {
+  >(values: (string | number | boolean | null)[][]): T[] {
     return values
       .map((v) => {
-        return this.converterHelperService.inflate<T>(v[0] as string);
+        return this.converterHelperService.inflateItem(v[0] as string);
       })
       .filter((element): element is T => {
         return element !== null;
