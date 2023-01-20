@@ -117,18 +117,4 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
       }),
     );
   }
-
-  public remove(interactiveId: string): Observable<boolean> {
-    return defer(() =>
-      from(
-        this.astraClient.executeStmt(this.removeStmt, [
-          [interactiveId, 'string'],
-        ]),
-      ),
-    ).pipe(
-      map(() => {
-        return true;
-      }),
-    );
-  }
 }

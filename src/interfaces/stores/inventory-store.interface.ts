@@ -15,5 +15,4 @@ export interface InventoryStoreInterface {
     itemId: string,
   ): Observable<T | null>;
   drop(interactiveId: string, itemId: string): Observable<boolean>;
-  remove(interactiveId: string): Observable<boolean>;
 }

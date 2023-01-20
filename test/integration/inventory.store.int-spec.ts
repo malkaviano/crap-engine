@@ -1,16 +1,59 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { map, mergeMap } from 'rxjs';
+import { map, concatMap, of } from 'rxjs';
 
-import { InventoryStore } from '@root/infra/stores/inventory.store';
+import { InventoryStore } from '@infra/stores/inventory.store';
 import { HelpersModule } from '@helpers/helpers.module';
 import { InfraModule } from '@infra/infra.module';
 import { INVENTORY_STORE_TOKEN } from '@root/tokens';
+import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 
-import { knifeEntity, swordEntity } from '../fakes';
+import { firstAidKitEntity, friendNoteEntity, swordEntity } from '../fakes';
 
 describe('InventoryStore', () => {
   let service: InventoryStore;
+
+  const store = (actor: string) =>
+    concatMap((entity: ItemEntityInterface) =>
+      service.store(actor, entity).pipe(
+        map((result) => {
+          return { result, entity };
+        }),
+      ),
+    );
+
+  const look = (actor: string) =>
+    concatMap((entity: ItemEntityInterface) =>
+      service.look(actor, entity.id).pipe(
+        map((result) => {
+          return { result, entity };
+        }),
+      ),
+    );
+
+  const drop = (actor: string) =>
+    concatMap((entity: ItemEntityInterface) =>
+      service.drop(actor, entity.id).pipe(
+        map((result) => {
+          return { result, entity };
+        }),
+      ),
+    );
+
+  const assert = (expected: boolean) =>
+    map(
+      ({
+        result,
+        entity,
+      }: {
+        result: boolean;
+        entity: ItemEntityInterface;
+      }) => {
+        expect(result).toEqual(expected);
+
+        return entity;
+      },
+    );
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,55 +69,34 @@ describe('InventoryStore', () => {
     expect(service).toBeDefined();
   });
 
-  it('should execute inventory actions', (done) => {
-    service
-      .remove('actor1')
+  it('should execute store, look and remove', (done) => {
+    of(swordEntity, friendNoteEntity, firstAidKitEntity)
       .pipe(
-        map((result) => {
-          expect(result).toEqual(true);
+        store('actor1'),
+        assert(true),
+        look('actor1'),
+        map(({ result, entity }) => {
+          expect(result).toEqual(entity);
+
+          return entity;
         }),
-        mergeMap(() => service.remove('actor2')),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() => service.store('actor1', swordEntity)),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() => service.drop('actor1', knifeEntity.id)),
-        map((result) => {
-          expect(result).toEqual(false);
-        }),
-        mergeMap(() => service.look('actor1', swordEntity.id)),
-        map((result) => {
-          expect(result).toEqual(swordEntity);
-        }),
-        mergeMap(() => service.store('actor1', knifeEntity)),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() => service.look('actor1', knifeEntity.id)),
-        map((result) => {
-          expect(result).toEqual(knifeEntity);
-        }),
-        mergeMap(() => service.look('actor2', swordEntity.id)),
-        map((result) => {
+        look('actor2'),
+        map(({ result, entity }) => {
           expect(result).toBeNull();
+
+          return entity;
         }),
-        mergeMap(() => service.drop('actor1', knifeEntity.id)),
-        map((result) => {
-          expect(result).toEqual(true);
-        }),
-        mergeMap(() => service.look('actor1', knifeEntity.id)),
-        map((result) => {
-          expect(result).toBeNull();
-        }),
+        drop('actor1'),
+        assert(true),
+        drop('actor2'),
+        assert(false),
       )
       .subscribe({
         next: () => {
           done();
         },
-        error: () => {
+        error: (err) => {
+          console.log(err);
           done('fail');
         },
       });
