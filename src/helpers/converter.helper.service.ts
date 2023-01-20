@@ -21,7 +21,7 @@ export class ConverterHelper {
     return null;
   }
 
-  public parseJson(json: string): unknown {
+  private parseJson(json: string): unknown {
     try {
       return JSON.parse(json);
     } catch (error) {
@@ -30,12 +30,6 @@ export class ConverterHelper {
   }
 
   private convert<T>(obj: unknown, cls: ClassConstructor<T>): T | null {
-    const instance = plainToInstance(cls, obj);
-
-    if (instance instanceof cls) {
-      return instance;
-    }
-
-    return null;
+    return plainToInstance(cls, obj);
   }
 }
