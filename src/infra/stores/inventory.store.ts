@@ -5,7 +5,6 @@ import { defer, from, map, Observable } from 'rxjs';
 import { InventoryStoreInterface } from '@interfaces/stores/inventory-store.interface';
 import { AstraClient } from '@root/infra/clients/astra.client';
 import { ConfigValuesHelper } from '@helpers/config-values.helper.service';
-import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { ItemEntityInterface } from '@interfaces/item-entity.interface';
 import { WeaponEntity } from '@entities/weapon.entity';
 import { ConverterHelper } from '@helpers/converter.helper.service';
@@ -94,9 +93,9 @@ export class InventoryStore implements OnModuleInit, InventoryStoreInterface {
     ).pipe(
       map((values) => {
         if (values.length) {
-          const obj = JSON.parse(values[0][2] as string);
-
-          return this.converterHelperService.inflateItemEntity<T>(obj);
+          return this.converterHelperService.inflateItemEntity<T>(
+            values[0][2] as string,
+          );
         }
 
         return null;

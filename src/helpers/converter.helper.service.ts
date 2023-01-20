@@ -13,26 +13,32 @@ import { ReadableEntity } from '@entities/readable.entity';
 export class ConverterHelper {
   public inflateItemDefinition<
     T extends WeaponDefinition | ConsumableDefinition | ReadableDefinition,
-  >(obj: { readonly category: string }): T | null {
+  >(json: string): T | null {
     let item: T | null = null;
 
-    if (obj['category'] === 'WEAPON') {
-      const instance = plainToInstance(WeaponDefinition, obj);
+    const obj = this.parseJson(json);
 
-      if (instance instanceof WeaponDefinition) {
-        item = instance as T;
-      }
-    } else if (obj['category'] === 'CONSUMABLE') {
-      const instance = plainToInstance(ConsumableDefinition, obj);
+    if (obj) {
+      const p = Object.getOwnPropertyDescriptor(obj, 'category');
 
-      if (instance instanceof ConsumableDefinition) {
-        item = instance as T;
-      }
-    } else if (obj['category'] === 'READABLE') {
-      const instance = plainToInstance(ReadableDefinition, obj);
+      if (p?.value && p.value === 'WEAPON') {
+        const instance = plainToInstance(WeaponDefinition, obj);
 
-      if (instance instanceof ReadableDefinition) {
-        item = instance as T;
+        if (instance instanceof WeaponDefinition) {
+          item = instance as T;
+        }
+      } else if (p?.value && p.value === 'CONSUMABLE') {
+        const instance = plainToInstance(ConsumableDefinition, obj);
+
+        if (instance instanceof ConsumableDefinition) {
+          item = instance as T;
+        }
+      } else if (p?.value && p.value === 'READABLE') {
+        const instance = plainToInstance(ReadableDefinition, obj);
+
+        if (instance instanceof ReadableDefinition) {
+          item = instance as T;
+        }
       }
     }
 
@@ -41,26 +47,32 @@ export class ConverterHelper {
 
   public inflateItemEntity<
     T extends WeaponEntity | ConsumableEntity | ReadableEntity,
-  >(obj: { readonly id: string; readonly category: string }): T | null {
+  >(json: string): T | null {
     let item: T | null = null;
 
-    if (obj['category'] === 'WEAPON') {
-      const instance = plainToInstance(WeaponEntity, obj);
+    const obj = this.parseJson(json);
 
-      if (instance instanceof WeaponEntity) {
-        item = instance as T;
-      }
-    } else if (obj['category'] === 'CONSUMABLE') {
-      const instance = plainToInstance(ConsumableEntity, obj);
+    if (obj) {
+      const p = Object.getOwnPropertyDescriptor(obj, 'category');
 
-      if (instance instanceof ConsumableEntity) {
-        item = instance as T;
-      }
-    } else if (obj['category'] === 'READABLE') {
-      const instance = plainToInstance(ReadableEntity, obj);
+      if (p?.value && p.value === 'WEAPON') {
+        const instance = plainToInstance(WeaponEntity, obj);
 
-      if (instance instanceof ReadableEntity) {
-        item = instance as T;
+        if (instance instanceof WeaponEntity) {
+          item = instance as T;
+        }
+      } else if (p?.value && p.value === 'CONSUMABLE') {
+        const instance = plainToInstance(ConsumableEntity, obj);
+
+        if (instance instanceof ConsumableEntity) {
+          item = instance as T;
+        }
+      } else if (p?.value && p.value === 'READABLE') {
+        const instance = plainToInstance(ReadableEntity, obj);
+
+        if (instance instanceof ReadableEntity) {
+          item = instance as T;
+        }
       }
     }
 
