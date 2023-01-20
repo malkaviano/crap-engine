@@ -3,6 +3,7 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { connect, Channel, Connection, ConsumeMessage } from 'amqplib';
 
 import { EventMessage } from '@messages/event.message';
+import { ConverterHelper } from '@helpers/converter.helper.service';
 
 interface Channels {
   [key: string]: Channel;
@@ -14,7 +15,7 @@ export class AmqpClient implements OnModuleDestroy {
 
   private connection: Connection | null;
 
-  constructor() {
+  constructor(private readonly converterHelper: ConverterHelper) {
     this.channels = {};
 
     this.connection = null;
@@ -51,9 +52,11 @@ export class AmqpClient implements OnModuleDestroy {
       queue,
       (msg: ConsumeMessage | null) => {
         if (msg) {
-          const obj = JSON.parse(msg.content.toString());
+          const obj = this.converterHelper.parseJson(msg.content.toString());
 
-          f(obj);
+          if (obj) {
+            f(obj as T);
+          }
 
           channel.ack(msg);
         }

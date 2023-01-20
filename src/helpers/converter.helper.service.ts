@@ -66,4 +66,12 @@ export class ConverterHelper {
 
     return item;
   }
+
+  public parseJson(json: string): unknown {
+    try {
+      return JSON.parse(json);
+    } catch (error) {
+      return null;
+    }
+  }
 }
