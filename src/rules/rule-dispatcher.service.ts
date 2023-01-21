@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 
-import { mergeMap } from 'rxjs';
+import { filter, mergeMap } from 'rxjs';
 
 import { RuleInterface } from '@interfaces/rule.interface';
 import { MessageBrokerInterface } from '@interfaces/message-broker.interface';
@@ -8,6 +8,7 @@ import { MESSAGE_BROKER_TOKEN } from '@root/tokens';
 import { CustomLoggerHelper } from '@helpers/custom-logger.helper.service';
 import { EquipRuleService } from '@rules/equip.rule.service';
 import { LootRuleService } from './loot.rule.service';
+import { EventMessage } from '../messages/event.message';
 
 @Injectable()
 export class RuleDispatcherService {
@@ -29,6 +30,7 @@ export class RuleDispatcherService {
   public listen(): void {
     this.messageBroker.eventMessageConsumed$
       .pipe(
+        filter((msg) => this.isValid(msg)),
         mergeMap((event) => {
           this.customLoggerHelper.log(RuleDispatcherService.name, event);
 
@@ -60,5 +62,9 @@ export class RuleDispatcherService {
           });
         },
       });
+  }
+
+  private isValid(msg: EventMessage): boolean {
+    return !!msg.action;
   }
 }
