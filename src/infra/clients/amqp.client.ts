@@ -42,7 +42,7 @@ export class AmqpClient implements OnModuleDestroy {
     });
 
     await channel.assertQueue(queue, {
-      exclusive: true,
+      exclusive: false,
       autoDelete: true,
     });
 
